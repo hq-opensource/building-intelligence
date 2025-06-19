@@ -1,0 +1,188 @@
+services:
+  # =========================================================================================
+  # Databases of the Building Intelligence ==================================================
+  # =========================================================================================
+  redis:
+    image: bitnami/redis:latest
+    container_name: redis
+    hostname: redis
+    restart: always
+    ports:
+      - 6379:6379
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - redis-data:/bitnami/redis/data
+
+  # =========================================================================================
+  # Building Intelligence ===================================================================
+  # =========================================================================================
+
+  initializers:
+    container_name: initializers
+    build:
+      context: .
+      dockerfile: ./initializers/Dockerfile
+    restart: on-failure # This needs to run only once
+    environment:
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
+      INFLUXDB_ORG: ${INFLUXDB_ORG:-results}
+      INFLUXDB_URL: ${INFLUXDB_URL:-http://influxdb:8086}
+      INFLUXDB_MAPPING_FILE: ${INFLUXDB_MAPPING_FILE:-/app/influxdb_mapping.yaml}
+      DEVICES_CONFIG_FILE: ${DEVICES_CONFIG_FILE:-/app/devices.yaml}
+      LATITUDE: ${LATITUDE}
+      LONGITUDE: ${LONGITUDE}
+      ALTITUDE: ${ALTITUDE}
+      LOGLEVEL: ${LOGLEVEL:-INFO}
+      TZ: ${TIMEZONE:-America/Montreal}
+    volumes:
+      - ./devices.yaml:/app/devices.yaml
+      - ./influxdb_mapping.yaml:/app/influxdb_mapping.yaml
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  cold-pickup-mpc:
+    container_name: cold-pickup-mpc
+    build:
+      context: .
+      dockerfile: ./cold-pickup-mpc/Dockerfile
+    restart: always
+    environment:
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
+      INFLUXDB_ORG: ${INFLUXDB_ORG:-results}
+      INFLUXDB_URL: ${INFLUXDB_URL:-http://influxdb:8086}
+      CORE_API_URL: ${CORE_API_URL:-http://core-api:8000}
+      VERBOSE_SOLVER_LOGS: ${VERBOSE_SOLVER_LOGS:-false}
+      MONITOR_INTERVAL: ${MONITOR_INTERVAL}
+      SECURITY_LIMIT: ${SECURITY_LIMIT}
+      CURTAILMENT_STEP: ${CURTAILMENT_STEP}
+      DEBOUNCE_TIME: ${DEBOUNCE_TIME}
+      DEBOUNCE_TIME_BATTERY: ${DEBOUNCE_TIME_BATTERY}
+      LOGLEVEL: ${LOGLEVEL:-INFO}
+      TZ: ${TIMEZONE:-America/Montreal}
+    depends_on:
+      initializers:
+        condition: service_completed_successfully
+
+  core-api:
+    container_name: core-api
+    build:
+      context: .
+      dockerfile: ./core-api/Dockerfile
+    restart: always
+    ports:
+      - 8000:8000
+    environment:
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
+      INFLUXDB_ORG: ${INFLUXDB_ORG:-results}
+      INFLUXDB_URL: ${INFLUXDB_URL:-http://influxdb:8086}
+      LOGLEVEL: ${LOGLEVEL:-INFO}
+      TZ: ${TIMEZONE:-America/Montreal}
+    depends_on:
+      initializers:
+        condition: service_completed_successfully
+
+  data-engine:
+    container_name: data-engine
+    build:
+      context: .
+      dockerfile: ./data-engine/Dockerfile
+    restart: always
+    environment:
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
+      INFLUXDB_ORG: ${INFLUXDB_ORG:-results}
+      INFLUXDB_URL: ${INFLUXDB_URL:-http://influxdb:8086}
+      LOCAL_INFLUX_BUCKET: ${LOCAL_INFLUX_BUCKET}
+      INFLUXDB_CLOUD_URL: ${INFLUXDB_CLOUD_URL}
+      INFLUXDB_CLOUD_ORG: ${INFLUXDB_CLOUD_ORG}
+      INFLUXDB_CLOUD_TOKEN: ${INFLUXDB_CLOUD_TOKEN}
+      CLOUD_WEATHER_BUCKET: ${CLOUD_WEATHER_BUCKET}
+      LOGLEVEL: ${LOGLEVEL:-INFO}
+      TZ: ${TIMEZONE:-America/Montreal}
+      LATITUDE: ${LATITUDE}
+      LONGITUDE: ${LONGITUDE}
+    depends_on:
+      initializers:
+        condition: service_completed_successfully
+
+
+  frontend:
+    container_name: frontend
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
+    restart: always
+    ports:
+      - 8200:8200
+    volumes:
+      - ./devices.yaml:/app/devices.yaml
+    environment:
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      LOGLEVEL: ${LOGLEVEL:-INFO}
+      TZ: ${TIMEZONE:-America/Montreal}
+      DEVICES_CONFIG_FILE: ${DEVICES_CONFIG_FILE:-/app/devices.yaml}
+      GRID_SERVICES_API_URL: ${GRID_SERVICES_API_URL:-http://grid-services-api:8001}
+
+  grid-services-api:
+    container_name: grid-services-api
+    build:
+      context: .
+      dockerfile: ./grid-services-api/Dockerfile
+    restart: always
+    ports:
+      - 8001:8001
+    volumes:
+      - ./devices.yaml:/app/grid-services-api/devices.yaml
+    environment:
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      LOGLEVEL: ${LOGLEVEL:-INFO}
+      TZ: ${TIMEZONE:-America/Montreal}
+      DEVICES_CONFIG_FILE: ${DEVICES_CONFIG_FILE:-/app/grid-services-api/devices.yaml}
+
+  ha-device-interface:
+    container_name: ha-device-interface
+    build:
+      context: .
+      dockerfile: ./ha-device-interface/Dockerfile
+    restart: always
+    environment:
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      DEVICE_INTERFACE_IMPLEMENTATION: ${DEVICE_INTERFACE_IMPLEMENTATION:-ha}
+      HA_HOST: ${HA_HOST:-homeassistant}
+      HA_PORT: ${HA_PORT:-8123}
+      HA_TOKEN: ${HA_TOKEN}
+      LOGLEVEL: ${LOGLEVEL:-INFO}
+      TZ: ${TIMEZONE:-America/Montreal}
+    depends_on:
+      initializers:
+        condition: service_completed_successfully
+
+volumes:
+  influxdb-data:
+    name: agent_te_influxdb-data
+  redis-data:
+    name: agent_te_redis-data

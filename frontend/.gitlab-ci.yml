@@ -1,0 +1,60 @@
+#
+# Build Python code
+#
+build:python:frontend:
+  image: python:3.11
+  stage: build
+  artifacts:
+    untracked: true
+    reports:
+      dotenv: build.env
+  before_script:
+    - pip install poetry
+    - cd frontend
+  script:
+    - poetry install
+    - echo "FRONTEND_VERSION=$(poetry version -s)" >> ../build.env
+  when: always
+  tags:
+    - $RUNNERTAG
+
+#
+# Test Python code
+#
+# test:python:frontend:
+#   image: python:3.11
+#   stage: test
+#   dependencies:
+#     - build:python:frontend
+#   before_script:
+#     - pip install poetry
+#     - cd frontend
+#   script:
+#     - poetry run pytest
+#   when: always
+#   tags:
+#     - $RUNNERTAG
+
+# Dummy test stage
+test:python:frontend:
+  stage: test
+  script: echo "hello frontend test"
+
+#
+# Package a Dask Docker image of the Grid Interpreter
+#
+package:docker:frontend:
+  image: docker:latest
+  stage: package
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY_IMAGE
+    - docker build -t "$CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA" -t "$CI_REGISTRY_IMAGE/frontend:$FRONTEND_VERSION" -t "$CI_REGISTRY_IMAGE/frontend:latest" --push -f frontend/Dockerfile .
+  # For now this job a ran manually, but we can change it to run automatically on every commit to the main branch:  
+  # rules:
+  # - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  #   when: always
+  # - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+  #   when: manual
+  when: manual
+  tags:
+    - $RUNNERTAG

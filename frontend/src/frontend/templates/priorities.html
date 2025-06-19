@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+    <title>Device Priorities</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/scripts.js"></script>
+    <style>
+        .container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3 colonnes */
+            gap: 20px;
+            width: 90%;
+        }
+
+        .column {
+            border-radius: 10px;
+            padding: 0;
+            background-color: #1e1e1e;
+        }
+
+        .high-priority h2 {
+            background-color: #3d7040; /* Vert pour haute priorité */
+            padding: 10px;
+            border-radius: 10px 10px 0 0;
+            text-align: center;
+            margin: 0;
+            color: #ffffff;
+        }
+
+        .medium-priority h2 {
+            background-color: #ffa722; /* Jaune pour moyenne priorité */
+            padding: 10px;
+            border-radius: 10px 10px 0 0;
+            text-align: center;
+            margin: 0;
+            color: #ffffff;
+        }
+
+        .low-priority h2 {
+            background-color: #be4646; /* Rouge pour basse priorité */
+            padding: 10px;
+            border-radius: 10px 10px 0 0;
+            text-align: center;
+            margin: 0;
+            color: #ffffff;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 10px;
+        }
+
+        li {
+            background-color: #2e2e2e;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: grab;
+        }
+
+        li:active {
+            cursor: grabbing;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.8); /* Couleur de fond semi-transparente */
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #333; /* Fond sombre pour le contenu */
+            color: #fff; /* Texte clair */
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%;
+            max-height: 90vh;
+            overflow-y: auto; /* Ajout d’un défilement vertical si nécessaire */
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #fff;
+        }
+
+         #device-form {
+            padding: 20px;
+            margin: 0 auto;
+            background-color: #2e2e2e;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        #device-form input[type="text"],
+        #device-form input[type="number"],
+        #device-form select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background-color: #1e1e1e;
+            color: #ffffff;
+            font-size: 14px;
+        }
+
+        #device-form input[readonly] {
+            background-color: #383838;
+            color: #888888;
+            cursor: not-allowed;
+        }
+
+        #device-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #cccccc;
+        }
+
+        #device-form button {
+            padding: 10px 20px;
+            margin: 10px 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        /*#save-properties-button {*/
+        /*    background-color: #3d7040;*/
+        /*    color: white;*/
+        /*}*/
+
+        /*#save-properties-button:hover {*/
+        /*    background-color: #4c8850;*/
+        /*}*/
+
+        #cancel-properties-button {
+            background-color: #be4646;
+            color: white;
+        }
+
+        #cancel-properties-button:hover {
+            background-color: #cf5555;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        /* Style responsive */
+        @media screen and (max-width: 480px) {
+            #device-form {
+                padding: 15px;
+            }
+
+            #device-form button {
+                width: 100%;
+                margin: 5px 0;
+            }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+</head>
+<body data-page="priorities">
+    <div class="header">
+        <a href="/">
+            <i class="fas fa-home"></i>
+        </a>
+    </div>
+    <div class="language-switcher">
+        <button data-language="fr">Français</button>
+        <button data-language="en">English</button>
+    </div>
+    <h1 data-translate-key="title" id="title">Device Priorities</h1>
+    <div class="container">
+        <div class="column high-priority">
+            <h2 data-translate-key="highPriority" id="high-priority-title">High Priority</h2>
+            <ul id="high-priority-list"></ul>
+        </div>
+        <div class="column medium-priority">
+            <h2  data-translate-key="mediumPriority" id="medium-priority-title">Medium Priority</h2>
+            <ul id="medium-priority-list"></ul>
+        </div>
+        <div class="column low-priority">
+            <h2 data-translate-key="lowPriority" id="low-priority-title">Low Priority</h2>
+            <ul id="low-priority-list"></ul>
+        </div>
+    </div>
+    <div id="device-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="edit-properties-title" data-translate-key="editDevice">Edit Device</h2>
+            <form id="device-form">
+                <div id="device-properties" class="form-group">
+                </div>
+                <button type="button" data-translate-key="save" id="save-properties-button" onclick="saveDevice()">Save</button>
+                <button type="button" data-translate-key="cancel" id="cancel-properties-button" onclick="closeModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+    <button data-translate-key="save" id="save-button" onclick="savePriorities()">Save</button>
+    <script>
+
+        const typeMapping = {
+            type: 'string',
+            entity_id: 'string',
+            description: 'string',
+            friendly_name: 'string',
+            manufacturer: 'string',
+            model: 'string',
+            group: 'string',
+            priority: 'number',
+            critical_state: 'number',
+            desired_state: 'number',
+            power_capacity: 'number',
+            critical_action: 'number',
+            activation_action: 'number',
+            deactivation_action: 'number',
+            modulation_capability: 'boolean',
+            discharge_capability: 'boolean',
+            discharge_action: 'number'
+        };
+
+        // Supprimez la fonction setLanguage existante et utilisez plutôt :
+        function updateDeviceNames() {
+            const currentLang = LanguageManager.getCurrentLanguage();
+
+            // Mise à jour des noms d'appareils dans les listes
+            const updateList = (listId) => {
+                const list = document.getElementById(listId);
+                list.querySelectorAll('li').forEach(item => {
+                    const deviceId = item.getAttribute('data-id');
+                    const device = window.devices.find(d => d.entity_id === deviceId);
+                    item.textContent = translations[currentLang].friendlyNames[deviceId] || device.friendly_name;
+                });
+            };
+
+            updateList('high-priority-list');
+            updateList('medium-priority-list');
+            updateList('low-priority-list');
+        }
+
+        async function fetchDevices() {
+            const response = await fetch('/devices');
+            const devices = await response.json();
+            window.devices = devices;
+
+            const currentLang = LanguageManager.getCurrentLanguage();
+
+            // Mise à jour des listes...
+            const updateListWithDevices = (devices, group, listId) => {
+                const list = document.getElementById(listId);
+                list.innerHTML = '';
+
+                devices.filter(device => device.group === group).forEach(device => {
+                    const listItem = document.createElement('li');
+                    listItem.setAttribute('data-id', device.entity_id);
+                    listItem.textContent = translations[currentLang].friendlyNames[device.entity_id] || device.friendly_name;
+                    listItem.onclick = () => openModal(device);
+                    list.appendChild(listItem);
+                });
+
+                new Sortable(list, {
+                    group: 'shared',
+                    animation: 150,
+                    onEnd: updatePriorities
+                });
+            };
+
+            updateListWithDevices(devices, 'high', 'high-priority-list');
+            updateListWithDevices(devices, 'medium', 'medium-priority-list');
+            updateListWithDevices(devices, 'low', 'low-priority-list');
+        }
+
+        function updatePriorities() {
+            const highPriorityList = document.getElementById('high-priority-list');
+            const mediumPriorityList = document.getElementById('medium-priority-list');
+            const lowPriorityList = document.getElementById('low-priority-list');
+
+            const newOrder = [];
+
+            highPriorityList.querySelectorAll('li').forEach((item, index) => {
+                const device = window.devices.find(d => d.entity_id === item.getAttribute('data-id'));
+                device.priority = index + 1;
+                device.group = 'high';
+                newOrder.push(device);
+            });
+
+            mediumPriorityList.querySelectorAll('li').forEach((item, index) => {
+                const device = window.devices.find(d => d.entity_id === item.getAttribute('data-id'));
+                device.priority = highPriorityList.querySelectorAll('li').length + index + 1;
+                device.group = 'medium';
+                newOrder.push(device);
+            });
+
+            lowPriorityList.querySelectorAll('li').forEach((item, index) => {
+                const device = window.devices.find(d => d.entity_id === item.getAttribute('data-id'));
+                device.priority = highPriorityList.querySelectorAll('li').length + mediumPriorityList.querySelectorAll('li').length + index + 1;
+                device.group = 'low';
+                newOrder.push(device);
+            });
+
+            window.devices = newOrder;
+        }
+
+        async function savePriorities() {
+            const currentLang = LanguageManager.getCurrentLanguage();
+
+            try {
+                const response = await fetch('/devices', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(window.devices),
+                });
+
+                const responseData = await response.json();
+                console.log('Réponse complète:', responseData);
+
+                if (response.ok) {
+                    alert(translations?.[currentLang]?.saveSuccess || 'Save successful');
+                    closeModal();
+                    updateDeviceList();
+                } else {
+                    alert(translations?.[currentLang]?.saveError || 'Save failed');
+                }
+            } catch (error) {
+                console.error('Erreur lors de la sauvegarde:', error);
+                alert('Une erreur est survenue lors de la sauvegarde');
+            }
+        }
+
+        let currentDevice = null;
+
+        function openModal(device) {
+            const currentLang = LanguageManager.getCurrentLanguage();
+            currentDevice = device;
+            const propertiesContainer = document.getElementById('device-properties');
+            propertiesContainer.innerHTML = '';
+
+            for (const [key, value] of Object.entries(device)) {
+                if (key !== "entity_id" && key !== "activation_action" && key !== "deactivation_action" && key !== "friendly_name") {
+                    continue;
+                }
+
+                const label = document.createElement('label');
+                label.setAttribute('for', `device-${key}`);
+
+                label.innerText = (translations[currentLang].deviceProperties[key] || key) + ':';
+
+                const input = document.createElement('input');
+                input.setAttribute('type', 'text');
+                input.setAttribute('id', `device-${key}`);
+                input.setAttribute('name', key);
+
+                if (key === "friendly_name") {
+                    input.setAttribute('value', translations[currentLang].friendlyNames[device.entity_id] || key);
+                } else {
+                    input.setAttribute('value', value);
+                }
+
+                if (key === "entity_id" || key === "priority" || key === "group" || key === "friendly_name") {
+                    input.setAttribute('readonly', true);
+                }
+
+                propertiesContainer.appendChild(label);
+                propertiesContainer.appendChild(input);
+                propertiesContainer.appendChild(document.createElement('br'));
+            }
+
+            document.getElementById('device-modal').style.display = "block";
+        }
+
+        // Constante pour symboliser "fermer"
+        const closeButton = document.querySelector('.close');
+
+        // Ajout de l'écouteur pour fermer la modale
+        closeButton.addEventListener('click', closeModal);
+
+        // Ajout d'un listener pour fermer le dialogue avec la touche Esc
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Fonction closeModal
+        function closeModal() {
+            const modal = document.getElementById('device-modal');
+            if (modal) {
+                modal.style.display = 'none'; // Ferme la modale en la masquant
+                console.log('Modal fermée');  // Debugging ou action supplémentaire
+            }
+        }
+
+        function saveDevice() {
+            const propertiesContainer = document.getElementById('device-properties');
+            const inputs = propertiesContainer.querySelectorAll('input');
+
+            inputs.forEach(input => {
+                const type = typeMapping[input.name];
+                let value = input.value;
+
+                // Convert the value back to its original type
+                if (value === '' || value === 'null') {
+                    value = null;
+                } else if (type === 'number') {
+                    value = parseFloat(value);
+                } else if (type === 'boolean') {
+                    value = (value.toLowerCase() === 'true');
+                }
+                currentDevice[input.name] = value;
+            });
+
+            // Update window.devices with the modified currentDevice
+            const deviceIndex = window.devices.findIndex(device => device.entity_id === currentDevice.entity_id);
+            if (deviceIndex !== -1) {
+                window.devices[deviceIndex] = currentDevice;
+            }
+
+            savePriorities();
+        }
+
+        function updateDeviceList() {
+            const highPriorityList = document.getElementById('high-priority-list');
+            const mediumPriorityList = document.getElementById('medium-priority-list');
+            const lowPriorityList = document.getElementById('low-priority-list');
+            const currentLang = LanguageManager.getCurrentLanguage();
+
+            highPriorityList.innerHTML = '';
+            mediumPriorityList.innerHTML = '';
+            lowPriorityList.innerHTML = '';
+
+            window.devices.forEach(device => {
+                const listItem = document.createElement('li');
+                listItem.setAttribute('data-id', device.entity_id);
+                listItem.innerHTML = translations[currentLang].friendlyNames[device.entity_id] || device.friendly_name;
+                listItem.onclick = () => openModal(device);
+
+                if (device.group === 'high') {
+                    highPriorityList.appendChild(listItem);
+                } else if (device.group === 'medium') {
+                    mediumPriorityList.appendChild(listItem);
+                } else {
+                    lowPriorityList.appendChild(listItem);
+                }
+            });
+        }
+
+        document.querySelectorAll('#high-priority-list li, #medium-priority-list li, #low-priority-list li').forEach(item => {
+            item.onclick = () => {
+                const device = window.devices.find(d => d.entity_id === item.getAttribute('data-id'));
+                openModal(device);
+            };
+        });
+
+        window.onload = () => {
+            fetchDevices();
+        };
+
+        // Écouteur pour les changements de langue
+        window.addEventListener('languageChanged', updateDeviceNames);
+    </script>
+</body>
+</html>

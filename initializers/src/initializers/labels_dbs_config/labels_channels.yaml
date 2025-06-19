@@ -1,0 +1,42 @@
+# Channels 
+non_controllable_loads: "non_controllable_loads" # forecaster
+forecast_request: "forecast_request" # forecaster
+learner_request: "learner_request" # learners
+grid_service_request: "grid_service_request" # grid connector
+
+# Prefixes
+grid_functions_prefix: "grid_function/"
+forecaster_prefix: "forecaster/"
+learner_prefix: "learner/"
+control_prefix: "control/"
+
+# Control actions
+control:
+  # Get the current state of a device
+  get: "get"
+  # Set the state of a device
+  set: "set"
+
+# Messages for the forecaster
+execute_day_ahead_forecast: "execute_day_ahead_forecast"
+
+# Messages for the learner
+execute_learning_black_box_model: "execute_learning_black_box_model"
+
+
+# Channels for the BGI APPS
+grid_functions:
+  # Implemented
+  power_limit_control: "power_limit_control" 
+  cold_load_pickup: "cold_load_pickup" 
+  dlc_fix_writer: "dlc_fix_writer" 
+  paid_setpoint_control: "paid_setpoint_control" 
+  payment_confirmations: "payment_confirmations"
+  mpc: "mpc"
+  # Not implemented
+  mpc_day_ahead_coordination: "mpc_day_ahead_coordination" 
+  mpc_dynamic_tariff_optimizer: "mpc_dynamic_tariff_optimizer" 
+  mpc_retrieve_optimization_status: "mpc_retrieve_optimization_status" 
+  dlc_dynamic_writer: "dlc_dynamic_writer" 
+  dlc_estimate_flexibility: "dlc_estimate_flexibility" 
+

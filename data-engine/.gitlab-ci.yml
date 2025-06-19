@@ -1,0 +1,54 @@
+#
+# Build Python code
+#
+build:python:data-engine:
+  image: python:3.11
+  stage: build
+  artifacts:
+    untracked: true
+    reports:
+      dotenv: build.env
+  before_script:
+    - pip install poetry
+    - cd data-engine
+    - poetry config -- http-basic.gitlab-etsim gitlab-ci-token $CI_JOB_TOKEN
+  script:
+    - poetry install
+    - echo "DATA_ENGINE_VERSION=$(poetry version -s)" >> ../build.env
+  when: always
+  tags:
+    - $RUNNERTAG
+
+#
+# Test Python code
+#
+test:python:data-engine:
+  image: python:3.11
+  stage: test
+  dependencies:
+    - build:python:data-engine
+  before_script:
+    - pip install poetry
+    - cd data-engine
+    - poetry config -- http-basic.gitlab-etsim gitlab-ci-token $CI_JOB_TOKEN
+  script:
+    - poetry run pytest
+  when: always
+  tags:
+    - $RUNNERTAG
+
+#
+# Create a docker image in the registry
+#
+package:docker:data-engine:
+  image: docker:latest
+  stage: package
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY_IMAGE
+    - docker buildx create --driver docker-container --use
+    - docker buildx build --provenance=false --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE/data-engine:$CI_COMMIT_SHA" -t "$CI_REGISTRY_IMAGE/data-engine:$DATA_ENGINE_VERSION" -t "$CI_REGISTRY_IMAGE/data-engine:latest" --build-arg gitlab_user=gitlab-ci-token --build-arg gitlab_token=$CI_JOB_TOKEN --push -f data-engine/Dockerfile .
+    - docker buildx stop
+    - docker buildx rm -f
+  when: manual
+  tags:
+    - $RUNNERTAG

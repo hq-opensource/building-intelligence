@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "core-api"
+version = "0.0.1"
+description = "Peripheral main API."
+authors = ["Hydro-Québec <hydroquebec@hydroquebec.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.115.0"
+faststream = {extras = ["redis"], version = "^0.5.23"}
+uvicorn = "^0.30.6"
+pandas = "^2.2.3"
+isodate = "^0.7.2"
+pyyaml = "^6.0.2"
+common = { path = "../common", develop = true }
+apscheduler = "^3.11.0"
+fastapi-mcp = "^0.2.0"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^8.3.5"
+freezegun = "^1.5.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+

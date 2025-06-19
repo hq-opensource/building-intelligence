@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "initializers"
+version = "0.0.1"
+description = "Initialize values for the user"
+authors = ["Hydro-Québec <hydroquebec@hydroquebec.com>"]
+readme = "README.md"
+packages = [{include = "initializers", from = "src"}]
+
+[tool.poetry.dependencies]
+python = ">=3.11, <3.13"
+influxdb-client = "^1.38.0"
+pandas = "^2.1.1"
+pymongo = "^4.5.0"
+pytz = "^2023.3.post1"
+pip-licenses = "^4.3.4"
+redis = "^5.0.8"
+pyyaml = "^6.0.2"
+common = { path = "../common", develop = true }
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+initializers = "initializers.app:main"

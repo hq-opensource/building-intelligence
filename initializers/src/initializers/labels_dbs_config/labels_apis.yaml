@@ -1,0 +1,25 @@
+# Methods of Things Board
+day_ahead_coordination: "day_ahead_coordination"
+tariff_profile_optimizer: "tariff_profile_optimizer"
+retrieve_optimization_status: "retrieve_optimization_status"
+dlc_fix_writer: "dlc_fix_writer"
+dlc_dynamic_writer: "dlc_dynamic_writer"
+flexibility_request: "flexibility_request"
+dlc_paid_dynamic_writer: "paid_grid_function"
+dlc_payment_confirmation: "payment_confirmations"
+
+# Endpoints of the DLC API
+dlc_service_fix_interval: "/fixinterval"
+dlc_service_dynamic_interval: "/dynamicinterval"
+dlc_service_paid_interval_response: "/lnbitsinvoice"  # Use this endpoint for the invoice response interface
+dlc_service_flexibility: "/getflexibility"
+
+# Endpoints of the DAC API
+dac_day_ahead_coordination: "/optimize_dac"
+dac_optimize_profile_tariff: "/optimize_profile_tariff"
+dac_optimize_state: "/state_retriever"
+
+# tags
+helpers: "Helper endpoints"
+manage_flexibility: "Manage flexibility"
+manage_setpoints: "Manage setpoints"

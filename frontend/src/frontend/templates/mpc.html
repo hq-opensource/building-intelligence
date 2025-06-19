@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid mpc</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/scripts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
+    <style>
+        /* Variables CSS pour faciliter la cohérence et les modifications */
+        :root {
+            --bg-primary: #121212;
+            --bg-secondary: #2a2a2a;
+            --bg-tertiary: #1e1e1e;
+            --text-primary: #ffffff;
+            --text-secondary: #e0e0e0;
+            --accent-primary: #6200ea;
+            --accent-secondary: #bb86fc;
+            --accent-tertiary: #03dac6;
+            --accent-danger: #cf6679;
+            --border-primary: #4a4a4a;
+            --border-secondary: #606060;
+            --hover-primary: #3700b3;
+            --hover-secondary: #383838;
+            --hover-tertiary: #018786;
+            --hover-danger: #b00020;
+            --radius: 5px;
+            --radius-large: 8px;
+            --spacing-xs: 5px;
+            --spacing-sm: 8px;
+            --spacing-md: 10px;
+            --spacing-lg: 15px;
+            --spacing-xl: 20px;
+            --spacing-xxl: 30px;
+        }
+
+        /* Reset et base */
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: var(--spacing-xl) 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Typographie */
+        h1, h2 {
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: var(--spacing-xl);
+            font-size: 1.8rem;
+        }
+
+        h2 {
+            margin: var(--spacing-xxl) 0 var(--spacing-lg);
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+        }
+
+        /* Navigation */
+        .header {
+            position: absolute;
+            top: var(--spacing-md);
+            left: var(--spacing-md);
+        }
+
+        .header a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            padding: var(--spacing-xs) var(--spacing-md);
+            border-radius: var(--radius-large);
+        }
+
+        .header a:hover {
+            color: #bbbbbb;
+        }
+
+        .header a i {
+            margin-right: 6px;
+            font-size: 18px;
+        }
+
+        /* Layout conteneurs */
+        .mpc {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 90%;
+        }
+
+        /* Selector MPC types */
+        .mpc-type-selector {
+            max-width: 450px;
+            margin-bottom: 25px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .mpc-types-main-label {
+            display: block;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: var(--text-secondary);
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .mpc-type-items-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+        }
+
+        .mpc-type-item input[type="checkbox"] {
+            display: none;
+        }
+
+        .mpc-type-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: calc(25% - 10px);
+            min-width: 80px;
+            height: 80px;
+            padding: var(--spacing-md);
+            border: 2px solid var(--border-primary);
+            border-radius: var(--radius-large);
+            background-color: var(--bg-secondary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .mpc-type-button:hover {
+            background-color: var(--hover-secondary);
+            border-color: var(--border-secondary);
+        }
+
+        .mpc-type-button i {
+            font-size: 1.8em;
+            margin-bottom: var(--spacing-sm);
+            color: var(--accent-secondary);
+            transition: color 0.2s ease;
+        }
+
+        .mpc-type-button span {
+            font-size: 0.75rem;
+            line-height: 1.2;
+            display: block;
+        }
+
+        .mpc-type-item input[type="checkbox"]:checked + .mpc-type-button {
+            background-color: var(--accent-primary);
+            border-color: var(--accent-secondary);
+            color: var(--text-primary);
+        }
+
+        .mpc-type-item input[type="checkbox"]:checked + .mpc-type-button i {
+            color: var(--text-primary);
+        }
+
+        /* Inputs et contrôles communs */
+        .mpc input[type="number"],
+        .mpc input[type="text"] {
+            padding: var(--spacing-md);
+            border-radius: var(--radius);
+            border: 1px solid var(--accent-primary);
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            text-align: center;
+            flex: 1;
+        }
+
+        .mpc input[type="number"]::placeholder,
+        .mpc input[type="text"]::placeholder {
+            color: #999;
+        }
+
+        .mpc input[type="number"]:focus,
+        .mpc input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent-secondary);
+        }
+
+        /* Boutons */
+        .mpc button {
+            background-color: var(--accent-primary);
+            color: var(--text-primary);
+            border: none;
+            padding: 12px var(--spacing-xl);
+            border-radius: var(--radius);
+            cursor: pointer;
+            margin: var(--spacing-sm) 0;
+            width: 100%;
+            max-width: 220px;
+            text-align: center;
+            font-size: 0.95rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .mpc button:hover {
+            background-color: var(--hover-primary);
+        }
+
+        /* Section séries temporelles */
+        .timeseries-input-section {
+            width: 100%;
+            margin-top: var(--spacing-md);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Entrées de séries temporelles */
+        #timeSeriesEntries {
+            width: 100%;
+            max-width: 600px;
+            margin-top: var(--spacing-xs);
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .timeseries-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm);
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-primary);
+            position: relative;
+        }
+
+        .timeseries-inputs-container {
+            display: flex;
+            flex: 1;
+            gap: var(--spacing-sm);
+            align-items: center;
+            min-width: 0;
+        }
+
+        /* Ajoutez ces styles spécifiques pour les champs de prix et de puissance */
+        .price-input,
+        .power-input {
+            flex: 0.5 !important;
+            min-width: 80px !important;
+            max-width: 100px !important;
+        }
+
+        /* Ajustez ce style pour que la date/heure occupe plus d'espace */
+        .datetime-picker-container,
+        .datetime-display {
+            flex: 2;
+            min-width: 180px;
+        }
+
+
+        /* Styles pour le sélecteur de date/heure */
+        .datetime-picker-container {
+            min-width: 180px;
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--accent-primary);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .datetime-picker-container input {
+            width: 100%;
+            padding: var(--spacing-sm);
+            background-color: transparent;
+            color: var(--text-primary);
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Styles pour l'affichage de l'heure ou date+heure */
+        .datetime-display {
+            min-width: 180px;
+            padding: var(--spacing-sm) var(--spacing-md);
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius);
+            color: var(--accent-secondary);
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+
+        /* Personnalisation de Flatpickr */
+        .flatpickr-calendar.dark {
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .flatpickr-time input.flatpickr-hour,
+        .flatpickr-time input.flatpickr-minute {
+            font-weight: bold;
+        }
+
+        /* Styles pour les conteneurs d'input avec unités */
+        .input-with-unit {
+            position: relative;
+            flex: 0.5 !important;
+            min-width: 80px !important;
+            max-width: 100px !important;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-with-unit input {
+            width: 100%;
+            padding-right: 25px; /* Espace pour l'unité */
+        }
+
+        .unit-symbol {
+            position: absolute;
+            right: 10px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            pointer-events: none; /* Pour que les clics passent à travers */
+        }
+
+
+        /* Boutons d'action de ligne */
+        .row-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-left: auto;
+        }
+
+        .row-action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .row-action-btn.add-btn {
+            background-color: var(--accent-primary);
+            color: var(--text-primary);
+        }
+
+        .row-action-btn.add-btn:hover {
+            background-color: var(--hover-primary);
+        }
+
+        .row-action-btn.remove-btn {
+            background-color: var(--accent-danger);
+            color: var(--text-primary);
+        }
+
+        .row-action-btn.remove-btn:hover {
+            background-color: var(--hover-danger);
+        }
+
+        /* Style spécifique au bouton de soumission */
+        .submit-timeseries-button {
+            background-color: var(--accent-primary) !important;
+            color: var(--text-primary) !important;
+            margin-top: var(--spacing-xl) !important;
+            max-width: 220px !important;
+        }
+
+        .submit-timeseries-button:hover {
+            background-color: var(--hover-primary) !important;
+        }
+
+        /* Media Queries */
+        @media (max-width: 480px) {
+            .mpc-type-button {
+                width: calc(50% - 5px);
+                height: 70px;
+                padding: var(--spacing-sm);
+            }
+
+            .mpc-type-button i {
+                font-size: 1.5em;
+                margin-bottom: var(--spacing-xs);
+            }
+
+            .timeseries-inputs-container {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+
+            .datetime-picker-container,
+            .datetime-display {
+                min-width: 100%;
+                margin-bottom: var(--spacing-xs);
+            }
+
+            .row-actions {
+                margin-top: var(--spacing-sm);
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+<body data-page="mpc">
+<div class="header">
+    <a href="/"><i class="fas fa-home"></i></a>
+</div>
+<h1 data-translate-key="title">Contrôle Prédictif par Modèle (MPC)</h1>
+<div class="mpc">
+    <!-- Sélection des types de MPC -->
+    <div class="mpc-type-selector">
+        <label class="mpc-types-main-label" data-translate-key="mpcTypesLabel">Sélectionnez le/les modèles(s) :</label>
+        <div class="mpc-type-items-container">
+            <div class="mpc-type-item">
+                <input type="checkbox" id="mpc_space_heating" name="mpc_type" value="space_heating">
+                <label for="mpc_space_heating" class="mpc-type-button">
+                    <i class="fas fa-thermometer-half"></i>
+                    <span data-translate-key="mpcTypeSpaceHeatingShort">Chauffage</span>
+                </label>
+            </div>
+            <div class="mpc-type-item">
+                <input type="checkbox" id="mpc_electric_storage" name="mpc_type" value="electric_storage">
+                <label for="mpc_electric_storage" class="mpc-type-button">
+                    <i class="fas fa-battery-full"></i>
+                    <span data-translate-key="mpcTypeElectricStorageShort">Stockage</span>
+                </label>
+            </div>
+            <div class="mpc-type-item">
+                <input type="checkbox" id="mpc_water_heater" name="mpc_type" value="water_heater">
+                <label for="mpc_water_heater" class="mpc-type-button">
+                    <i class="fas fa-hot-tub"></i>
+                    <span data-translate-key="mpcTypeWaterHeaterShort">Chauffe-eau</span>
+                </label>
+            </div>
+            <div class="mpc-type-item">
+                <input type="checkbox" id="mpc_electric_vehicle" name="mpc_type" value="electric_vehicle">
+                <label for="mpc_electric_vehicle" class="mpc-type-button">
+                    <i class="fas fa-charging-station"></i>
+                    <span data-translate-key="mpcTypeElectricVehicleShort">Recharge</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section pour la Saisie de Séries Temporelles -->
+    <h2 class="mpc-types-main-label" data-translate-key="timeseriesTitle">Série de prix et puissance aux 10
+        minutes:</h2>
+    <div class="timeseries-input-section">
+        <div id="timeSeriesEntries">
+            <!-- Les lignes de saisie seront ajoutées ici par JavaScript -->
+        </div>
+        <button onclick="submitTimeSeriesData()" data-translate-key="submitTimeseriesButton"
+                class="submit-timeseries-button">
+            Soumettre
+        </button>
+    </div>
+</div>
+
+<script>
+    // Variables globales
+    let lastDateTime = null;
+    let rowCounter = 0;
+    const timeStepMinutes = 10; // Intervalle en minutes entre chaque ligne
+
+    const DEFAULT_PRICE = 0.07;
+    const DEFAULT_POWER = 5;
+
+    // Utilitaires pour la validation et le formatage
+    const utils = {
+        formatTime(dateObj) {
+            if (!dateObj) return "00:00";
+            return `${dateObj.getHours().toString().padStart(2, '0')}:${dateObj.getMinutes().toString().padStart(2, '0')}`;
+        },
+
+        formatDate(dateObj) {
+            if (!dateObj) return "";
+            const options = {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            };
+            return dateObj.toLocaleDateString(this.getCurrentLang(), options);
+        },
+
+        formatDateTime(dateObj) {
+            if (!dateObj) return "";
+            const options = {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            return dateObj.toLocaleDateString(this.getCurrentLang(), options);
+        },
+
+        getCurrentLang() {
+            return typeof LanguageManager !== 'undefined' && LanguageManager.getCurrentLanguage
+                    ? LanguageManager.getCurrentLanguage()
+                    : 'fr';
+        },
+
+        getNextTime(baseTime, minutesToAdd = timeStepMinutes) {
+            return new Date(baseTime.getTime() + minutesToAdd * 60000);
+        },
+
+        isSameDay(date1, date2) {
+            return date1.getFullYear() === date2.getFullYear() &&
+                    date1.getMonth() === date2.getMonth() &&
+                    date1.getDate() === date2.getDate();
+        },
+
+        roundMinutesToNext10(date) {
+            const minutes = date.getMinutes();
+            let roundedMinutes;
+
+            if (minutes % 10 === 0) {
+                // Déjà un multiple de 10, pas besoin de changer
+                roundedMinutes = minutes;
+            } else {
+                // Arrondir au multiple de 10 supérieur
+                roundedMinutes = Math.ceil(minutes / 10) * 10;
+            }
+
+            const newDate = new Date(date);
+
+            if (roundedMinutes === 60) {
+                newDate.setHours(date.getHours() + 1);
+                newDate.setMinutes(0);
+            } else {
+                newDate.setMinutes(roundedMinutes);
+            }
+
+            newDate.setSeconds(0);
+            newDate.setMilliseconds(0);
+
+            return newDate;
+        },
+
+        // Conservons l'ancienne fonction mais utilisons la nouvelle dans l'application
+        roundMinutesToNearest10(date) {
+            const minutes = Math.round(date.getMinutes() / 10) * 10;
+            const newDate = new Date(date);
+
+            if (minutes === 60) {
+                newDate.setHours(date.getHours() + 1);
+                newDate.setMinutes(0);
+            } else {
+                newDate.setMinutes(minutes);
+            }
+
+            newDate.setSeconds(0);
+            newDate.setMilliseconds(0);
+
+            return newDate;
+        },
+
+        // Nouvelle fonction pour valider que les champs requis de la ligne sont remplis
+        validateRowInputs(row) {
+            if (!row) return false;
+
+            const priceInput = row.querySelector('.price-input-container input');
+            const powerInput = row.querySelector('.power-input-container input');
+
+            const priceValue = priceInput ? priceInput.value.trim() : '';
+            const powerValue = powerInput ? powerInput.value.trim() : '';
+
+            return priceValue !== '' && powerValue !== '';
+        },
+
+        // Fonction pour vérifier qu'au moins un modèle est sélectionné
+        validateModelSelection() {
+            const checkboxes = document.querySelectorAll('input[name="mpc_type"]:checked');
+            return checkboxes.length > 0;
+        },
+
+        // Fonction pour afficher un message d'erreur
+        showError(message) {
+            alert(message);
+            return false;
+        }
+    };
+
+    function createDatetimePicker(initialDateTime, parentRow) {
+        const container = document.createElement('div');
+        container.classList.add('datetime-picker-container');
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.classList.add('datetime-picker');
+        input.placeholder = 'Sélectionner date et heure';
+        input.value = utils.formatDateTime(initialDateTime);
+        input.dataset.timestamp = initialDateTime.getTime();
+
+        container.appendChild(input);
+
+        // Flag pour éviter les appels récursifs
+        let isUpdating = false;
+
+        // Initialiser Flatpickr après l'ajout au DOM
+        setTimeout(() => {
+            const fp = flatpickr(input, {
+                enableTime: true,
+                dateFormat: "j M Y à H:i",
+                time_24hr: true,
+                locale: utils.getCurrentLang() === 'fr' ? 'fr' : 'default',
+                minuteIncrement: 10,
+                defaultDate: initialDateTime,
+                onChange: (selectedDates, dateStr, instance) => {
+                    if (isUpdating) return; // Éviter la récursion
+
+                    if (selectedDates && selectedDates[0]) {
+                        // Utiliser la fonction d'arrondi au multiple de 10 supérieur
+                        const originalDate = new Date(selectedDates[0]);
+                        const selectedDate = utils.roundMinutesToNext10(originalDate);
+
+                        // Si déjà un multiple de 10, pas besoin de mettre à jour
+                        if (originalDate.getMinutes() % 10 !== 0) {
+                            isUpdating = true;
+
+                            // Mettre à jour la valeur affichée sans déclencher onChange
+                            instance.setDate(selectedDate, false);
+
+                            // Mettre à jour manuellement l'affichage
+                            const formattedDate = instance.formatDate(selectedDate, instance.config.dateFormat);
+                            instance.input.value = formattedDate;
+
+                            isUpdating = false;
+                        }
+
+                        // Mettre à jour le timestamp
+                        input.dataset.timestamp = selectedDate.getTime();
+
+                        // Mettre à jour les lignes suivantes
+                        updateAllRows(parentRow);
+                    }
+                },
+                onOpen: (selectedDates, dateStr, instance) => {
+                    // Ajouter une classe pour le style
+                    instance.calendarContainer.classList.add('dark');
+                }
+            });
+
+            // Stocker l'instance pour la destruction future si nécessaire
+            input._flatpickr = fp;
+        }, 0);
+
+        return container;
+    }
+
+
+    // Fonction modifiée pour créer des inputs avec unités
+    function createNumericInput(translateKey, placeholder, step, defaultValue) {
+        // Créer le conteneur
+        const container = document.createElement('div');
+        container.classList.add('input-with-unit');
+
+        // Créer l'input
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.step = step;
+        input.setAttribute('data-translate-key-placeholder', translateKey);
+        input.placeholder = placeholder;
+        input.required = true;
+
+        // Ajouter une classe spécifique selon le type de champ
+        if (translateKey === 'placeholderPrice') {
+            container.classList.add('price-input-container');
+        } else if (translateKey === 'placeholderPower') {
+            container.classList.add('power-input-container');
+        }
+
+        // Appliquer la valeur par défaut
+        if (defaultValue !== undefined && defaultValue !== '') {
+            input.value = defaultValue;
+        }
+
+        if (typeof LanguageManager !== 'undefined' && LanguageManager.applyTranslationsToElement) {
+            LanguageManager.applyTranslationsToElement(input);
+        }
+
+        // Ajouter l'input au conteneur
+        container.appendChild(input);
+
+        // Ajouter le symbole d'unité
+        const unitSymbol = document.createElement('span');
+        unitSymbol.classList.add('unit-symbol');
+
+        if (translateKey === 'placeholderPrice') {
+            unitSymbol.textContent = '$';
+        } else if (translateKey === 'placeholderPower') {
+            unitSymbol.textContent = 'kW';
+        }
+
+        container.appendChild(unitSymbol);
+
+        return container;
+    }
+
+
+    // Gestion des lignes
+    function addNewTimeRow(afterRowId = null) {
+        const timeSeriesEntriesDiv = document.getElementById('timeSeriesEntries');
+        const rows = document.querySelectorAll('.timeseries-row');
+        const currentRowId = `row_${rowCounter++}`;
+
+        let currentDateTime;
+
+        // Déterminer la date/heure pour la nouvelle ligne
+        if (!rows.length) {
+            // Première ligne: utiliser l'heure actuelle arrondie aux 10 minutes supérieures
+            currentDateTime = utils.roundMinutesToNext10(new Date());
+        } else if (lastDateTime) {
+            // Lignes suivantes: ajouter 10 minutes à la dernière date/heure
+            currentDateTime = utils.getNextTime(lastDateTime);
+        } else {
+            currentDateTime = utils.roundMinutesToNext10(new Date());
+        }
+
+        // Mise à jour de la dernière date/heure
+        lastDateTime = currentDateTime;
+
+        // Création de la ligne
+        const row = document.createElement('div');
+        row.classList.add('timeseries-row');
+        row.id = currentRowId;
+        row.dataset.timestamp = currentDateTime.getTime();
+
+        // Container pour les inputs
+        const inputsContainer = document.createElement('div');
+        inputsContainer.classList.add('timeseries-inputs-container');
+
+        // Si c'est la première ligne, créer un sélecteur de date/heure, sinon affichage en lecture seule
+        const isFirstRow = rows.length === 0;
+
+        if (isFirstRow) {
+            // Première ligne avec sélecteur de date/heure
+            inputsContainer.appendChild(createDatetimePicker(currentDateTime, row));
+        } else {
+            // Lignes suivantes en lecture seule, mais toujours avec date et heure
+            const datetimeDisplay = document.createElement('div');
+            datetimeDisplay.classList.add('datetime-display');
+            datetimeDisplay.textContent = utils.formatDateTime(currentDateTime);
+            datetimeDisplay.title = utils.formatDateTime(currentDateTime);
+            inputsContainer.appendChild(datetimeDisplay);
+        }
+
+        // Ajouter les champs de saisie prix et puissance
+        inputsContainer.appendChild(createNumericInput('placeholderPrice', 'Prix ($)', '0.01', DEFAULT_PRICE));
+        inputsContainer.appendChild(createNumericInput('placeholderPower', 'Puissance (kW)', '1', DEFAULT_POWER));
+
+        // Ajouter le container d'inputs à la ligne
+        row.appendChild(inputsContainer);
+
+        // Ajouter les boutons d'action
+        const rowActions = document.createElement('div');
+        rowActions.classList.add('row-actions');
+
+        // Bouton "+"
+        const addButton = document.createElement('button');
+        addButton.type = 'button';
+        addButton.classList.add('row-action-btn', 'add-btn');
+        addButton.innerHTML = '<i class="fas fa-plus"></i>';
+        addButton.title = 'Ajouter une ligne';
+        addButton.onclick = () => addRowAfter(currentRowId);
+        rowActions.appendChild(addButton);
+
+        // Bouton "-" (pas pour la première ligne)
+        if (!isFirstRow) {
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.classList.add('row-action-btn', 'remove-btn');
+            removeButton.innerHTML = '<i class="fas fa-minus"></i>';
+            removeButton.title = 'Supprimer cette ligne';
+            removeButton.onclick = () => removeRow(currentRowId);
+            rowActions.appendChild(removeButton);
+        }
+
+        row.appendChild(rowActions);
+
+        // Insérer la ligne après la ligne spécifiée ou à la fin
+        if (afterRowId) {
+            const afterRow = document.getElementById(afterRowId);
+            if (afterRow && afterRow.nextSibling) {
+                timeSeriesEntriesDiv.insertBefore(row, afterRow.nextSibling);
+            } else {
+                timeSeriesEntriesDiv.appendChild(row);
+            }
+        } else {
+            timeSeriesEntriesDiv.appendChild(row);
+        }
+
+        // Mettre à jour les dates/heures de toutes les lignes
+        if (rows.length > 0) {
+            updateAllRows(document.querySelector('.timeseries-row'));
+        }
+
+        return currentRowId;
+    }
+
+    function addRowAfter(rowId) {
+        // Vérifier que les champs de la ligne actuelle sont remplis
+        const currentRow = document.getElementById(rowId);
+        if (!utils.validateRowInputs(currentRow)) {
+            return utils.showError("Veuillez remplir les champs Prix et Puissance avant d'ajouter une nouvelle ligne.");
+        }
+
+        addNewTimeRow(rowId);
+        updateAllRows(document.querySelector('.timeseries-row'));
+    }
+
+    // Mettre à jour la fonction removeRow pour empêcher de supprimer si moins de 2 lignes
+    function removeRow(rowId) {
+        const row = document.getElementById(rowId);
+        if (!row) return;
+
+        const timeSeriesEntriesDiv = document.getElementById('timeSeriesEntries');
+        const rows = document.querySelectorAll('.timeseries-row');
+
+        // Ne pas supprimer s'il ne reste que 2 lignes ou moins
+        if (rows.length <= 2) {
+            return utils.showError("La série temporelle doit contenir au moins 2 lignes.");
+        }
+
+        // Supprimer la ligne
+        timeSeriesEntriesDiv.removeChild(row);
+
+        // Mettre à jour lastDateTime
+        const lastRow = timeSeriesEntriesDiv.querySelector('.timeseries-row:last-child');
+        if (lastRow && lastRow.dataset.timestamp) {
+            lastDateTime = new Date(parseInt(lastRow.dataset.timestamp, 10));
+        }
+
+        // Mettre à jour les dates/heures de toutes les lignes
+        updateAllRows(document.querySelector('.timeseries-row'));
+    }
+
+
+    function updateAllRows(firstRow) {
+        if (!firstRow) return;
+
+        const rows = document.querySelectorAll('.timeseries-row');
+        if (rows.length <= 1) return;
+
+        // Récupérer la date/heure de la première ligne
+        const datetimePicker = firstRow.querySelector('.datetime-picker');
+        if (!datetimePicker || !datetimePicker.dataset.timestamp) return;
+
+        const baseTime = new Date(parseInt(datetimePicker.dataset.timestamp, 10));
+        firstRow.dataset.timestamp = baseTime.getTime();
+        lastDateTime = baseTime;
+
+        // Mettre à jour toutes les autres lignes
+        for (let i = 1; i < rows.length; i++) {
+            const nextTime = utils.getNextTime(baseTime, i * timeStepMinutes);
+            const datetimeDisplay = rows[i].querySelector('.datetime-display');
+
+            // Mettre à jour le timestamp de la ligne
+            rows[i].dataset.timestamp = nextTime.getTime();
+
+            if (datetimeDisplay) {
+                // Toujours afficher la date et l'heure complètes
+                datetimeDisplay.textContent = utils.formatDateTime(nextTime);
+                datetimeDisplay.title = utils.formatDateTime(nextTime);
+            }
+
+            if (i === rows.length - 1) {
+                lastDateTime = nextTime;
+            }
+        }
+    }
+
+    function resetTimeStepEntry() {
+        const timeSeriesEntriesDiv = document.getElementById('timeSeriesEntries');
+
+        // Détruire les instances Flatpickr
+        const datetimePickers = timeSeriesEntriesDiv.querySelectorAll('.datetime-picker');
+    datetimePickers.forEach(picker => {
+            if (picker._flatpickr) {
+                picker._flatpickr.destroy();
+            }
+        });
+
+        // Vider le conteneur
+        timeSeriesEntriesDiv.innerHTML = '';
+        lastDateTime = null;
+        rowCounter = 0;
+
+        // Ajouter deux nouvelles lignes
+        initializeTimeSeriesEntries();
+    }
+
+    // Fonction d'initialisation - ajouter 2 lignes par défaut
+    function initializeTimeSeriesEntries() {
+        // Ajouter la première ligne
+        const firstRowId = addNewTimeRow();
+
+        // Ajouter une deuxième ligne après la première
+        setTimeout(() => {
+            addRowAfter(firstRowId);
+        }, 100);
+    }
+
+    // Mettre à jour la vérification dans submitTimeSeriesData pour au minimum 2 lignes
+    async function submitTimeSeriesData() {
+        const currentLang = utils.getCurrentLang();
+
+        // Vérifier qu'au moins un modèle est sélectionné
+        if (!utils.validateModelSelection()) {
+            return utils.showError("Veuillez sélectionner au moins un modèle.");
+        }
+
+        const rows = document.querySelectorAll('#timeSeriesEntries .timeseries-row');
+
+        // Vérifier qu'il y a au moins 2 lignes
+        if (rows.length < 2) {
+            return utils.showError("La série temporelle doit contenir au moins 2 lignes.");
+        }
+
+        // Vérifier que toutes les lignes ont des valeurs
+        let hasInvalidRow = false;
+        rows.forEach(row => {
+            if (!utils.validateRowInputs(row)) {
+                hasInvalidRow = true;
+            }
+        });
+
+        if (hasInvalidRow) {
+            return utils.showError("Toutes les lignes doivent avoir des valeurs de Prix et Puissance.");
+        }
+
+        const space_heating = document.querySelector('input[id="mpc_space_heating"]:checked');
+        const electric_storage = document.querySelector('input[id="mpc_electric_storage"]:checked');
+        const electric_vehicle = document.querySelector('input[id="mpc_electric_vehicle"]:checked');
+        const water_heater = document.querySelector('input[id="mpc_water_heater"]:checked');
+
+        let prices = {}
+        let power_limit = {}
+
+        let startTime = null;
+        let endTime = null;
+
+        // Collecter les données
+        rows.forEach(row => {
+            if (!row.dataset.timestamp) return;
+
+            const timestamp = parseInt(row.dataset.timestamp, 10);
+            const dateTime = new Date(timestamp);
+            const isoWithOffset = dateTime.toISOString()
+
+            if (!startTime) {
+                startTime = dateTime;
+            }
+            endTime = dateTime;
+
+            const priceInput = row.querySelector('.price-input-container input');
+            const powerInput = row.querySelector('.power-input-container input');
+            const price = priceInput ? priceInput.value : '0';
+            const power = powerInput ? powerInput.value : '0';
+
+            prices[isoWithOffset] = parseFloat(price);
+            power_limit[isoWithOffset] = parseFloat(power);
+        });
+
+        const interval_in_min = ((endTime - startTime) / (rows.length - 1)) / 60000;
+
+        const calculate_mpc_payload_request = {
+            space_heating: !!space_heating,
+            electric_storage: !!electric_storage,
+            electric_vehicle: !!electric_vehicle,
+            water_heater: !!water_heater,
+            prices: prices,
+            power_limit: power_limit,
+            interval: interval_in_min,
+            start: startTime.toISOString(),
+            stop: endTime.toISOString(),
+        }
+
+        try {
+            const response = await fetch('/calculate_mpc', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(calculate_mpc_payload_request),
+            });
+
+            const responseData = await response.json();
+            console.log('Réponse complète:', responseData);
+
+            if (response.ok) {
+                alert(translations?.[currentLang]?.saveSuccess || 'Save successful');
+            } else {
+                alert(translations?.[currentLang]?.saveError || 'Save failed');
+            }
+        } catch (error) {
+            console.error('Erreur lors de la sauvegarde:', error);
+            alert('Une erreur est survenue lors de la sauvegarde');
+        }
+    }
+
+
+    // Initialisation au chargement de la page
+    document.addEventListener('DOMContentLoaded', function () {
+        // Vérifier si Flatpickr est chargé
+        if (typeof flatpickr === 'undefined') {
+            console.error("La bibliothèque Flatpickr n'est pas chargée. Le sélecteur de date ne fonctionnera pas.");
+            const script = document.createElement('script');
+            script.src = "https://cdn.jsdelivr.net/npm/flatpickr";
+            script.onload = function () {
+                const localeScript = document.createElement('script');
+                localeScript.src = "https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js";
+                localeScript.onload = function () {
+                    initializeTimeSeriesEntries();
+                };
+                document.head.appendChild(localeScript);
+            };
+            document.head.appendChild(script);
+        } else {
+            initializeTimeSeriesEntries();
+        }
+    });
+</script>
+</body>
+</html>

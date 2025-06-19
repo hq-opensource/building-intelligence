@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "common"
+version = "0.0.1"
+description = "Peripheral common components."
+authors = ["Hydro-Québec <hydroquebec@hydroquebec.com>"]
+packages = [{include = "common", from = "src"}]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+influxdb-client = "^1.46.0"
+redis = "^5.0.8"
+pandas = "^2.2.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

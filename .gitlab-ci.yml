@@ -1,0 +1,29 @@
+image: python:3.11
+
+stages:
+  - build
+  - test
+  - package
+
+dummy-job1:
+  stage: build
+  script: echo "hello build"
+
+dummy-job2:
+  stage: test
+  script: echo "hello test"
+
+dummy-job3:
+  stage: package
+  script: echo "hello package"
+
+include:
+  - "frontend/.gitlab-ci.yml"
+  # - "grid-interpreter-tb/.gitlab-ci.yml"
+  # - "service-device-provider/.gitlab-ci.yml"
+  # - "service-optimization/.gitlab-ci.yml"
+  # - "service-direct-control/.gitlab-ci.yml"
+  # - "service-device-gateway/.gitlab-ci.yml"
+  # - "forecasters/.gitlab-ci.yml"
+  # - "initializers/.gitlab-ci.yml"
+  # - "learners/.gitlab-ci.yml"

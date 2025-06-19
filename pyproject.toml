@@ -1,0 +1,21 @@
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["A", "B", "E", "F", "I", "N", "W", "INP"]
+
+[tool.ruff.lint.isort]
+lines-between-types = 1
+lines-after-imports = 2
+
+[tool.mypy]
+disable_error_code = "type-abstract"
+disallow_untyped_defs = true
+exclude = [".venv"]
+ignore_missing_imports = true
+namespace_packages = false
+strict_equality = true
+warn_no_return = true
+warn_redundant_casts = true
+warn_unused_ignores = true

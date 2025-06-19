@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "ha-device-interface"
+version = "0.0.1"
+description = "Control module for Home Assistant integration"
+authors = ["Hydro-Québec <hydroquebec@hydroquebec.com>"]
+readme = "README.md"
+packages = [{include = "ha_device_interface", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+redis = "^5.1.1"
+faststream = {extras = ["redis"], version = "^0.5.25"}
+common = { path = "../common", develop = true }
+requests = "^2.32.3"
+
+[tool.poetry.scripts]
+service = "ha_device_interface.app:main"
+
+[tool.poetry.group.dev.dependencies]
+types-requests = "^2.32.0.20241016"
+pytest = "^8.3.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,40 @@
+user_data: "user_data"
+es_charge_preferences: "electric_storage_charge_preferences"
+power_limit: "power_limit"
+
+# Initial values for profiles
+user_info_and_devices: "user_info_and_devices"
+occupation: "occupation"
+trading_preferences: "trading_preferences"
+non_controllable_loads: "non_controllable_loads"
+thermostat_setpoints: "thermostat_setpoints"
+es_desired_soc: "electric_storage_desired_soc"
+v1g_desired_soc: "v1g_desired_soc"
+v2g_desired_soc: "v2g_desired_soc"
+v1g_branched: "v1g_branched"
+v2g_branched: "v2g_branched"
+v1g_consumption: "v1g_consumption"
+v2g_consumption: "v2g_consumption"
+wh_state: "wh_state"
+
+# Payments
+lnbits_invoices: "lnbits_invoices"
+rds_invoice: "invoice"
+
+# Thermal models
+thermal_model: "thermal_model"
+rc_name: "name"
+rc_thermal_zones: "thermal_zones"
+rc_x_internal_states: "x_internal_states"
+rc_u_heaters: "u_heaters"
+rc_w_external_variables: "w_external_variables"
+
+# Grid functions
+grap_name: grap
+blackout_info: blackout_info
+grap_info: grap_info
+grap_state: grap_state
+grap_limit: grap_limit
+grap_active: grap_active
+grap_cold_pickup_call: grap_cold_pickup_call 
+grap_called: grap_called

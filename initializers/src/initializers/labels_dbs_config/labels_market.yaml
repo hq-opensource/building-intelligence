@@ -1,0 +1,8 @@
+# DAC grid function
+dac_hours_ahead: 24  # Measured in hours
+dac_timestep: 10  # Measured in minutes
+dac_horizon: 144  # Measured in number of time steps
+
+# DAR grid function
+dar_horizon: 2  # Measured in number of time steps
+dar_timstep: 10  # Measured in minutes

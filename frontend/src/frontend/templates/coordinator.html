@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid Coordinator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/scripts.js"></script>
+    <style>
+        /* Styles généraux */
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .header {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+        .header a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            padding: 5px 10px;
+            border-radius: 8px;
+            background-color: transparent;
+        }
+        .header a:hover {
+            color: #bbbbbb;
+        }
+        .header a i {
+            margin-right: 6px;
+            font-size: 18px;
+        }
+        h1 {
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.8rem; /* Ajustement pour mobile */
+        }
+        .power-limit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 90%; /* Adaptation au mobile */
+            max-width: 400px; /* Limitation max */
+        }
+        .power-limit .input-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+        .power-limit input {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #6200ea;
+            background-color: #1e1e1e;
+            color: #ffffff;
+            text-align: center;
+            flex: 1; /* Prend toute la largeur possible */
+        }
+        .power-limit input::placeholder {
+            color: #999;
+        }
+        .power-limit input:focus {
+            outline: none;
+            border-color: #bb86fc;
+        }
+        .power-limit .unit {
+            margin-left: 8px;
+            font-size: 14px;
+            color: #ffffff;
+            white-space: nowrap; /* Empêche la coupure du texte */
+        }
+        .power-limit button {
+            background-color: #6200ea;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px 0;
+            width: 100%; /* Largeur de 100% sur mobile */
+            max-width: 200px; /* Largeur max pour desktop */
+            text-align: center;
+        }
+        .power-limit button:hover {
+            background-color: #3700b3;
+        }
+        .power-limit .stop-button {
+            background-color: #b00020;
+            color: #ffffff;
+        }
+        .power-limit .stop-button:hover {
+            background-color: #7f000f;
+        }
+        .separator {
+            height: 20px;
+            border-bottom: 1px solid #444444;
+            width: 100%;
+            margin: 15px 0;
+        }
+        /* Responsiveness */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+                justify-content: flex-start; /* Aligne en haut pour les mobiles */
+                height: auto; /* Permet de scroller si nécessaire */
+            }
+            h1 {
+                font-size: 1.5rem; /* Réduit la taille du titre */
+            }
+            .power-limit input {
+                font-size: 16px; /* Rendre le texte plus lisible sur mobile */
+            }
+            .power-limit button {
+                font-size: 14px; /* Ajustement du texte des boutons */
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.2rem; /* Réduction supplémentaire pour écrans très petits */
+            }
+            .power-limit input {
+                font-size: 14px;
+            }
+            .power-limit button {
+                font-size: 12px; /* Boutons plus petits sur mobile */
+            }
+        }
+    </style>
+</head>
+<body data-page="coordinator">
+    <div class="header">
+        <a href="/">
+            <i class="fas fa-home"></i>
+        </a>
+    </div>
+    <div class="language-switcher">
+        <button data-language="fr">Français</button>
+        <button data-language="en">English</button>
+    </div>
+    <h1 data-translate-key="title">Contrôle de limite de puissance</h1>
+    <div class="power-limit">
+        <!-- Fonction Set Power Limit -->
+        <div class="input-container">
+            <input type="number" id="powerLimit" data-translate-key="placeholder" placeholder="Entrez la limite de puissance" step="0.1">
+            <span class="unit">kW</span>
+        </div>
+        <button data-translate-key="applyButton" onclick="setPowerLimit()">Appliquer la limite de puissance</button>
+
+        <!-- Séparateur visuel -->
+        <div class="separator"></div>
+
+        <!-- Fonction Stop Power Limit -->
+        <button data-translate-key="stopButton" class="stop-button" onclick="stopPowerLimit()">Arrêter la limite de puissance</button>
+    </div>
+    <script>
+        async function fetchCurrentPowerLimit() {
+            const inputField = document.getElementById('powerLimit');
+
+            try {
+                const response = await fetch('/get-power-limit');
+                if (response.ok) {
+                    const data = await response.json();
+                    const powerLimit = data.power_limit;
+
+                    if (powerLimit !== null) {
+                        inputField.value = powerLimit; // Met la valeur actuelle dans l'input
+                    } else {
+                        inputField.value = ''; // Vide l'input si la valeur est null
+                    }
+                } else {
+                    console.error('Failed to fetch power limit:', response.status);
+                }
+            } catch (error) {
+                console.error('Error fetching power limit:', error);
+            }
+        }
+
+        async function setPowerLimit() {
+            const inputField = document.getElementById('powerLimit');
+            const powerLimit = inputField.value;
+
+            // Si le champ est vide, demande une saisie valide
+            if (powerLimit === '') {
+                alert('Veuillez entrer une valeur positive');
+                return;
+            }
+
+            try {
+                const response = await fetch('/set-power-limit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ limit: parseFloat(powerLimit) }),
+                });
+
+                if (response.ok) {
+                    alert(translations[LanguageManager.getCurrentLanguage()].coordinator.saveSuccess.replace('{powerLimit}', powerLimit));
+                    fetchCurrentPowerLimit(); // Met à jour l'input avec la nouvelle valeur
+                } else {
+                    const errorData = await response.json();
+                    alert(`Erreur: ${errorData.detail}`);
+                }
+            } catch (error) {
+                console.error('Error setting power limit:', error);
+                alert(translations[LanguageManager.getCurrentLanguage()].coordinator.saveError);
+            }
+        }
+
+        async function stopPowerLimit() {
+            try {
+                const response = await fetch('/stop-power-limit', {
+                    method: 'POST',
+                });
+
+                if (response.ok) {
+                    alert('Lmite de puissance arrêtée avec succès');
+                    fetchCurrentPowerLimit(); // Met à jour l'input après avoir stoppé la limite
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.detail}`);
+                }
+            } catch (error) {
+                console.error('Error stopping power limit:', error);
+                alert("Une erreur est survenue lors de l'arrêt de la limite de puissance.");
+            }
+        }
+
+        // Appel initial pour récupérer la valeur dès le chargement de la page
+        window.onload = fetchCurrentPowerLimit;
+    </script>
+</body>
+</html>

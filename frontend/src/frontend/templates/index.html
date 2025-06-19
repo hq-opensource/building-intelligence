@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" data-page="index">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Energy Management System</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/scripts.js" defer></script>
+    <style>
+        .menu{
+            text-align: center;
+        }
+    </style>
+</head>
+<body data-page="index">
+    <div class="language-switcher">
+        <button data-language="fr">Français</button>
+        <button data-language="en">English</button>
+    </div>
+    <h1 data-translate-key="title">Home Energy Management System</h1>
+    <div class="menu">
+        <a href="/priorities">
+            <button id="btn-priority" data-translate-key="priority">Device Prioritization</button>
+        </a>
+        <a href="/coordinator">
+            <button id="btn-management" data-translate-key="management">Power Management</button>
+        </a>
+        <a href="/mpc">
+            <button id="btn-mpc" data-translate-key="mpc">MPC</button>
+        </a>
+    </div>
+</body>
+</html>

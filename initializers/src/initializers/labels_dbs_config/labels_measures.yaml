@@ -1,0 +1,37 @@
+# Measures
+tz_1_temperature_last_mesure: "tz_1_temperature_last_mesure"
+tz_2_temperature_last_mesure: "tz_2_temperature_last_mesure"
+bess_soc_last_mesure: "bess_soc_last_mesure"
+ev_last_charger_mesure: "ev_last_charger_mesure"
+wh_last_mesure: "wh_last_mesure"
+
+# Thresholds
+tz_1_low_level: "tz_1_low_level"
+tz_1_high_level: "tz_1_high_level"
+tz_2_low_level: "tz_2_low_level"
+tz_2_high_level: "tz_2_high_level"
+bess_soc_high_level: "bess_soc_high_level"
+bess_soc_low_level: "bess_soc_low_level"
+wh_high_level: "wh_high_level"
+wh_low_level: "wh_low_level"
+
+# name labels
+tz_1: "tz_1"
+tz_2: "tz_2"
+battery: "battery"
+water_heater: "water_heater"
+vehicle: "vehicle"
+
+# priorities values
+P1: "Priority_1"
+P2: "Priority_2"
+P3: "Priority_3"
+P4: "Priority_4"
+P5: "Priority_5"
+
+# states
+states_redis_key: "all_states"
+tz_1_state_change_key: "tz_1_state_change_key"
+tz_2_state_change_key: "tz_2_state_change_key"
+battery_state_change_key: "battery_state_change_key"
+water_heater_state_change_key: "water_heater_state_change_key"

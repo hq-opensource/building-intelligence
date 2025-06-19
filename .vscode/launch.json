@@ -1,0 +1,58 @@
+{
+    "configurations": [
+        {
+            "name": "Grid Services API",
+            "type": "debugpy",
+            "request": "launch",
+            "python": "${workspaceFolder}/grid-services-api/.venv/Scripts/python",
+            "module": "grid_services_api.app",
+            "cwd": "${workspaceFolder}/grid-services-api",
+            "envFile": "${workspaceFolder}/local-dev.env"
+        },
+        {
+            "name": "Core API",
+            "type": "debugpy",
+            "request": "launch",
+            "python": "${workspaceFolder}/core-api/.venv/Scripts/python",
+            "module": "core_api.app",
+            "cwd": "${workspaceFolder}/core-api",
+            "envFile": "${workspaceFolder}/local-dev.env"
+        },  
+        {
+            "name": "Data Engine",
+            "type": "debugpy",
+            "request": "launch",
+            "python": "${workspaceFolder}/data-engine/.venv/Scripts/python",
+            "module": "data_engine.app",
+            "cwd": "${workspaceFolder}/data-engine",
+            "envFile": "${workspaceFolder}/local-dev.env"
+        },
+        {
+            "name": "Initializers",
+            "type": "debugpy",
+            "request": "launch",
+            "python": "${workspaceFolder}/initializers/.venv/Scripts/python",
+            "module": "initializers.app",
+            "cwd": "${workspaceFolder}/initializers",
+            "envFile": "${workspaceFolder}/local-dev.env"
+        },
+        {
+            "name": "Frontend",
+            "type": "debugpy",
+            "request": "launch",
+            "python": "${workspaceFolder}/frontend/.venv/Scripts/python",
+            "module": "frontend.app",
+            "cwd": "${workspaceFolder}/frontend",
+            "envFile": "${workspaceFolder}/local-dev.env"
+        },
+        {
+            "name": "HA Device Interface",
+            "type": "debugpy",
+            "request": "launch",
+            "python": "${workspaceFolder}/ha-device-interface/.venv/Scripts/python",
+            "module": "ha_device_interface.app",
+            "cwd": "${workspaceFolder}/ha-device-interface",
+            "envFile": "${workspaceFolder}/local-dev.env"
+        },
+   ],
+}

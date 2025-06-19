@@ -1,0 +1,913 @@
+- friendly_name: Water heater
+  entity_id: water_heater
+  group: high
+  type: water_heater
+  description: Water heater
+  thermal_zone: garage
+  manufacturer: null
+  model: Calypso smart water heater controller (RM3500ZB)
+  priority: 1
+  tank_volume: 270  # default: 270 L
+  min_temperature: 30  # default: 30°C
+  max_temperature: 90  # default: 90°C
+  inlet_temperature: 16  # default: 16°C
+  water_heater_constat: 1.1638 # Wh/°C/Litre
+  critical_state: 40.0
+  desired_state: 80.0
+  power_capacity: 4.5
+  critical_action: 0.0
+  activation_action: 1.0
+  deactivation_action: 0.0
+  modulation_capability: null
+  discharge_capability: null
+  discharge_action: null
+  preferences_water_heater_consumption:
+    weekday:
+      days:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "06:35"
+          data: {"volume":26,"rate":2}
+        - time: "07:15"
+          data: {"volume":7,"rate":1}
+        - time: "07:40"
+          data: {"volume":13,"rate":1}
+        - time: "08:25"
+          data: {"volume":17,"rate":2}
+        - time: "11:30"
+          data: {"volume":4,"rate":1}
+        - time: "12:10"
+          data: {"volume":2,"rate":1}
+        - time: "12:40"
+          data: {"volume":3,"rate":1}
+        - time: "16:30"
+          data: {"volume":1,"rate":1}
+        - time: "17:15"
+          data: {"volume":1,"rate":1}
+        - time: "17:45"
+          data: {"volume":1,"rate":1}
+        - time: "18:10"
+          data: {"volume":1,"rate":1}
+        - time: "18:25"
+          data: {"volume":9,"rate":1}
+        - time: "18:45"
+          data: {"volume":5,"rate":1}
+        - time: "19:25"
+          data: {"volume":68,"rate":3}
+        - time: "20:25"
+          data: {"volume":40,"rate":3}
+        - time: "23:20"
+          data: {"volume":2,"rate":1}
+- friendly_name: Thermostat - Salon
+  entity_id: living_room
+  group: high
+  type: space_heating
+  description: Smart thermostat in the living room.
+  manufacturer: Sinope
+  model: Sinope TH
+  priority: 2
+  critical_state: 18.0
+  desired_state: 20.0
+  power_capacity: 1.5
+  critical_action: 10.0
+  activation_action: 19.0
+  deactivation_action: 18.0
+  modulation_capability: false
+  discharge_capability: false
+  discharge_action: null
+  min_setpoint: 15.0
+  max_setpoint: 25.0
+  preferences_setpoint:
+    weekday:
+      days:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+      events:
+        - time: "06:00"
+          data: 21.0
+        - time: "08:00"
+          data: 17.0
+        - time: "17:00"
+          data: 21.0
+        - time: "22:00"
+          data: 17.0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "07:00"
+          data: 21.0
+        - time: "23:00"
+          data: 17.0
+  preferences_occupancy:
+    weekday:
+      days:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+      events:
+        - time: "06:00"
+          data: 1
+        - time: "08:00"
+          data: 0
+        - time: "17:00"
+          data: 1
+        - time: "22:00"
+          data: 0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "07:00"
+          data: 1
+        - time: "23:00"
+          data: 0
+- friendly_name: Thermostat - Bedroom 1
+  entity_id: bedroom_1
+  group: high
+  type: space_heating
+  description: Smart thermostat in the bedroom.
+  manufacturer: Sinope
+  model: Sinope TH
+  priority: 3
+  critical_state: 18.0
+  desired_state: 20.0
+  power_capacity: 1.25
+  critical_action: 10.0
+  activation_action: 20.0
+  deactivation_action: 18.0
+  modulation_capability: false
+  discharge_capability: false
+  discharge_action: null
+  min_setpoint: 15.0
+  max_setpoint: 25.0
+  preferences_setpoint:
+    weekday:
+      days:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+      events:
+        - time: "06:00"
+          data: 21.0
+        - time: "08:00"
+          data: 17.0
+        - time: "17:00"
+          data: 21.0
+        - time: "22:00"
+          data: 17.0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "07:00"
+          data: 21.0
+        - time: "23:00"
+          data: 17.0
+  preferences_occupancy:
+    weekday:
+      days:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+      events:
+        - time: "06:00"
+          data: 1
+        - time: "08:00"
+          data: 0
+        - time: "17:00"
+          data: 1
+        - time: "22:00"
+          data: 0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "07:00"
+          data: 1
+        - time: "23:00"
+          data: 0
+- friendly_name: EV charger
+  entity_id: ev_switch
+  group: high
+  type: on_off_ev_charger
+  description: Mom's car
+  manufacturer: Tesla
+  model: Tesla model 3
+  priority: 4
+  critical_state: 0.0
+  desired_state: 1.0
+  power_capacity: 7.2
+  critical_action: 0.0
+  activation_action: 1.0
+  deactivation_action: 0.0
+  modulation_capability: null
+  discharge_capability: null
+  discharge_action: null
+  preferences_branched:
+    weekday:
+      days:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+      events:
+        - time: "23:00"
+          data: 1.0
+        - time: "06:00"
+          data: 0.0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "23:00"
+          data: 1.0
+        - time: "06:00"
+          data: 0.0
+- friendly_name: Thermostat - Cuisine
+  entity_id: kitchen
+  group: medium
+  type: space_heating
+  description: Smart thermostat in the kitchen.
+  manufacturer: Sinope
+  model: Sinope TH
+  priority: 5
+  critical_state: 18.0
+  desired_state: 20.0
+  power_capacity: 1.5
+  critical_action: 10.0
+  activation_action: 19.0
+  deactivation_action: 18.0
+  modulation_capability: false
+  discharge_capability: false
+  discharge_action: null
+  min_setpoint: 15.0
+  max_setpoint: 25.0
+  preferences_setpoint:
+    weekday:
+      days:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+      events:
+        - time: "06:00"
+          data: 21.0
+        - time: "08:00"
+          data: 17.0
+        - time: "17:00"
+          data: 21.0
+        - time: "22:00"
+          data: 17.0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "07:00"
+          data: 21.0
+        - time: "23:00"
+          data: 17.0
+  preferences_occupancy:
+    weekday:
+      days:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+      events:
+        - time: "06:00"
+          data: 1
+        - time: "08:00"
+          data: 0
+        - time: "17:00"
+          data: 1
+        - time: "22:00"
+          data: 0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "07:00"
+          data: 1
+        - time: "23:00"
+          data: 0
+- friendly_name: Thermostat - Dining_room
+  entity_id: dining_room
+  group: medium
+  type: space_heating
+  description: Smart thermostat in the dining room.
+  manufacturer: Sinope
+  model: Sinope TH
+  priority: 6
+  critical_state: 18.0
+  desired_state: 20.0
+  power_capacity: 1.25
+  critical_action: 10.0
+  activation_action: 20.0
+  deactivation_action: 18.0
+  modulation_capability: false
+  discharge_capability: false
+  discharge_action: null
+  min_setpoint: 15.0
+  max_setpoint: 25.0
+  preferences_setpoint:
+    weekday:
+      days:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+      events:
+        - time: "06:00"
+          data: 21.0
+        - time: "08:00"
+          data: 17.0
+        - time: "17:00"
+          data: 21.0
+        - time: "22:00"
+          data: 17.0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "07:00"
+          data: 21.0
+        - time: "23:00"
+          data: 17.0
+  preferences_occupancy:
+    weekday:
+      days:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+      events:
+        - time: "06:00"
+          data: 1
+        - time: "08:00"
+          data: 0
+        - time: "17:00"
+          data: 1
+        - time: "22:00"
+          data: 0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "07:00"
+          data: 1
+        - time: "23:00"
+          data: 0
+- friendly_name: Thermostat - Bedroom 2
+  entity_id: bedroom_2
+  group: medium
+  type: space_heating
+  description: Smart thermostat in the bedroom.
+  manufacturer: Sinope
+  model: Sinope TH
+  priority: 7
+  critical_state: 18.0
+  desired_state: 20.0
+  power_capacity: 1.25
+  critical_action: 10.0
+  activation_action: 20.0
+  deactivation_action: 18.0
+  modulation_capability: false
+  discharge_capability: false
+  discharge_action: null
+  min_setpoint: 15.0
+  max_setpoint: 25.0
+  preferences_setpoint:
+    weekday:
+      days:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+      events:
+        - time: "06:00"
+          data: 21.0
+        - time: "08:00"
+          data: 17.0
+        - time: "17:00"
+          data: 21.0
+        - time: "22:00"
+          data: 17.0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "07:00"
+          data: 21.0
+        - time: "23:00"
+          data: 17.0
+  preferences_occupancy:
+    weekday:
+      days:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+      events:
+        - time: "06:00"
+          data: 1
+        - time: "08:00"
+          data: 0
+        - time: "17:00"
+          data: 1
+        - time: "22:00"
+          data: 0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "07:00"
+          data: 1
+        - time: "23:00"
+          data: 0
+- friendly_name: Thermostat - Bedroom 3
+  entity_id: bedroom_3
+  group: medium
+  type: space_heating
+  description: Smart thermostat in the bedroom.
+  manufacturer: Sinope
+  model: Sinope TH
+  priority: 8
+  critical_state: 18.0
+  desired_state: 20.0
+  power_capacity: 1.25
+  critical_action: 10.0
+  activation_action: 20.0
+  deactivation_action: 18.0
+  modulation_capability: false
+  discharge_capability: false
+  discharge_action: null
+  min_setpoint: 15.0
+  max_setpoint: 25.0
+  preferences_setpoint:
+    weekday:
+      days:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+      events:
+        - time: "06:00"
+          data: 21.0
+        - time: "08:00"
+          data: 17.0
+        - time: "17:00"
+          data: 21.0
+        - time: "22:00"
+          data: 17.0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "07:00"
+          data: 21.0
+        - time: "23:00"
+          data: 17.0
+  preferences_occupancy:
+    weekday:
+      days:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+      events:
+        - time: "06:00"
+          data: 1
+        - time: "08:00"
+          data: 0
+        - time: "17:00"
+          data: 1
+        - time: "22:00"
+          data: 0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "07:00"
+          data: 1
+        - time: "23:00"
+          data: 0
+- friendly_name: Thermostat - Salle de Bain
+  entity_id: bathroom
+  group: medium
+  type: space_heating
+  description: Smart thermostat in the bathroom
+  manufacturer: Sinope
+  model: Sinope TH
+  priority: 9
+  critical_state: 18.0
+  desired_state: 22.0
+  power_capacity: 1.0
+  critical_action: 10.0
+  activation_action: 20.0
+  deactivation_action: 18.0
+  modulation_capability: false
+  discharge_capability: false
+  discharge_action: null
+  min_setpoint: 15.0
+  max_setpoint: 25.0
+  preferences_setpoint:
+    weekday:
+      days:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+      events:
+        - time: "06:00"
+          data: 21.0
+        - time: "08:00"
+          data: 17.0
+        - time: "17:00"
+          data: 21.0
+        - time: "22:00"
+          data: 17.0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "07:00"
+          data: 21.0
+        - time: "23:00"
+          data: 17.0
+  preferences_occupancy:
+    weekday:
+      days:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+      events:
+        - time: "06:00"
+          data: 1
+        - time: "08:00"
+          data: 0
+        - time: "17:00"
+          data: 1
+        - time: "22:00"
+          data: 0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "07:00"
+          data: 1
+        - time: "23:00"
+          data: 0
+- friendly_name: Thermostat - Sous-sol 1
+  entity_id: basement_1
+  group: low
+  type: space_heating
+  description: Smart thermostat in the basement.
+  manufacturer: Sinope
+  model: Sinope TH
+  priority: 10
+  critical_state: 18.0
+  desired_state: 22.0
+  power_capacity: 2.0
+  critical_action: 10.0
+  activation_action: 20.0
+  deactivation_action: 18.0
+  modulation_capability: false
+  discharge_capability: false
+  discharge_action: null
+  min_setpoint: 15.0
+  max_setpoint: 25.0
+  preferences_setpoint:
+    weekday:
+      days:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+      events:
+        - time: "06:00"
+          data: 21.0
+        - time: "08:00"
+          data: 17.0
+        - time: "17:00"
+          data: 21.0
+        - time: "22:00"
+          data: 17.0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "07:00"
+          data: 21.0
+        - time: "23:00"
+          data: 17.0
+  preferences_occupancy:
+    weekday:
+      days:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+      events:
+        - time: "06:00"
+          data: 1
+        - time: "08:00"
+          data: 0
+        - time: "17:00"
+          data: 1
+        - time: "22:00"
+          data: 0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "07:00"
+          data: 1
+        - time: "23:00"
+          data: 0
+- friendly_name: Thermostat - Sous-sol 2
+  entity_id: basement_2
+  group: low
+  type: space_heating
+  description: Smart thermostat in the basement.
+  manufacturer: Sinope
+  model: Sinope TH
+  priority: 11
+  critical_state: 18.0
+  desired_state: 22.0
+  power_capacity: 2.0
+  critical_action: 10.0
+  activation_action: 20.0
+  deactivation_action: 18.0
+  modulation_capability: false
+  discharge_capability: false
+  discharge_action: null
+  min_setpoint: 15.0
+  max_setpoint: 25.0
+  preferences_setpoint:
+    weekday:
+      days:
+      - MONDAY
+      - TUESDAY
+      - WEDNESDAY
+      - THURSDAY
+      - FRIDAY
+      events:
+        - time: "06:00"
+          data: 21.0
+        - time: "08:00"
+          data: 17.0
+        - time: "17:00"
+          data: 21.0
+        - time: "22:00"
+          data: 17.0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "07:00"
+          data: 21.0
+        - time: "23:00"
+          data: 17.0
+  preferences_occupancy:
+    weekday:
+      days:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+      events:
+        - time: "06:00"
+          data: 1
+        - time: "08:00"
+          data: 0
+        - time: "17:00"
+          data: 1
+        - time: "22:00"
+          data: 0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "07:00"
+          data: 1
+        - time: "23:00"
+          data: 0
+- friendly_name: Thermostat - Garage
+  entity_id: garage
+  group: low
+  type: space_heating
+  description: Smart thermostat in the garage.
+  manufacturer: Sinope
+  model: Sinope TH
+  priority: 12
+  critical_state: 18.0
+  desired_state: 18.0
+  power_capacity: 1.75
+  critical_action: 10.0
+  activation_action: 18.0
+  deactivation_action: 18.0
+  modulation_capability: false
+  discharge_capability: false
+  discharge_action: null
+  min_setpoint: 15.0
+  max_setpoint: 25.0
+  preferences_setpoint:
+    weekday:
+      days:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+      events:
+        - time: "06:00"
+          data: 21.0
+        - time: "08:00"
+          data: 17.0
+        - time: "17:00"
+          data: 21.0
+        - time: "22:00"
+          data: 17.0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "07:00"
+          data: 21.0
+        - time: "23:00"
+          data: 17.0
+  preferences_occupancy:
+    weekday:
+      days:
+      - MONDAY
+      - TUESDAY
+      - WEDNESDAY
+      - THURSDAY
+      - FRIDAY
+      events:
+        - time: "06:00"
+          data: 1
+        - time: "08:00"
+          data: 0
+        - time: "17:00"
+          data: 1
+        - time: "22:00"
+          data: 0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "07:00"
+          data: 1
+        - time: "23:00"
+          data: 0
+- friendly_name: Electric battery
+  entity_id: battery
+  group: low
+  type: electric_storage
+  description: Battery under the stairs
+  manufacturer: null
+  model: Scheneider XW Pro
+  priority: 13
+  critical_state: 20.0
+  desired_state: 90.0
+  power_capacity: 4.5
+  critical_action: 0.0
+  activation_action: 4.5
+  final_soc_requirement: 50.0
+  deactivation_action: 0.0
+  modulation_capability: true
+  discharge_capability: true
+  discharge_action: -4.5
+  energy_capacity: 15
+  charging_efficiency: 0.98
+  discharging_efficiency: 0.98
+  min_residual_energy: 30
+  max_residual_energy: 95
+  decay_factor: 0.995
+  preferences_soc:
+    weekday:
+      days:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+      events:
+        - time: "06:00"
+          data: 80.0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "08:00"
+          data: 80.0  
+- friendly_name: Electric vehicle
+  entity_id: electric_vehicle
+  group: low
+  type: electric_vehicle
+  description: EV access using the API.
+  manufacturer: BMW
+  model: BMW
+  priority: 14
+  critical_state: 0
+  desired_state: 90.0
+  power_capacity: 4.5
+  final_soc_requirement: 80
+  critical_action: 0.0
+  activation_action: 4.5
+  deactivation_action: 0.0
+  modulation_capability: true
+  discharge_capability: false
+  energy_capacity: 75  # Validate energy capacity
+  charging_efficiency: 0.98
+  discharging_efficiency: 0.98
+  min_residual_energy: 30
+  max_residual_energy: 95
+  decay_factor: 0.995
+  preferences_soc:
+    weekday:
+      days:
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+      events:
+        - time: "06:00"
+          data: 80.0
+    weekend:
+      days:
+        - SATURDAY
+        - SUNDAY
+      events:
+        - time: "08:00"
+          data: 80.0
+  preferences_branched:
+    allweek:
+      days:
+        - SUNDAY
+        - MONDAY
+        - TUESDAY
+        - WEDNESDAY
+        - THURSDAY
+        - FRIDAY
+        - SATURDAY
+      events:
+        - time: "23:00"
+          data: 1
+        - time: "06:00"
+          data: 0

@@ -1,0 +1,54 @@
+#
+# Build Python code
+#
+build:python:bgi-api:
+  image: python:3.11
+  stage: build
+  artifacts:
+    untracked: true
+    reports:
+      dotenv: build.env
+  before_script:
+    - pip install poetry
+    - cd bgi-api
+    - poetry config -- http-basic.gitlab-etsim gitlab-ci-token $CI_JOB_TOKEN
+  script:
+    - poetry install
+    - echo "SERVICE_BGI_API=$(poetry version -s)" >> ../build.env
+  when: always
+  tags:
+    - $RUNNERTAG
+
+#
+# Test Python code
+#
+test:python:bgi-api:
+  image: python:3.11
+  stage: test
+  dependencies:
+    - build:python:bgi-api
+  before_script:
+    - pip install poetry
+    - cd bgi-api
+    - poetry config -- http-basic.gitlab-etsim gitlab-ci-token $CI_JOB_TOKEN
+  script:
+    - poetry run pytest
+  when: always
+  tags:
+    - $RUNNERTAG
+
+#
+# Package a Dask Docker image of the optimization micro-service
+#
+package:docker:bgi-api:
+  image: docker:latest
+  stage: package
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY_IMAGE
+    - docker buildx create --driver docker-container --use
+    - docker buildx build --provenance=false --platform linux/arm64,linux/amd64 -t "$CI_REGISTRY_IMAGE/bgi-api:$CI_COMMIT_SHA" -t "$CI_REGISTRY_IMAGE/bgi-api:$SERVICE_BGI_API" -t "$CI_REGISTRY_IMAGE/bgi-api:latest" --build-arg gitlab_user=gitlab-ci-token --build-arg gitlab_token=$CI_JOB_TOKEN --push -f bgi-api/Dockerfile .
+    - docker buildx stop
+    - docker buildx rm -f
+  when: manual
+  tags:
+    - $RUNNERTAG
