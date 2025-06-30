@@ -1,3 +1,10 @@
+"""
+This module provides the ForecastRetriever class, which is responsible for
+generating forecasts, specifically for non-controllable loads.
+It leverages historical data from InfluxDB and configuration from Redis,
+using the Prophet library for time series forecasting.
+"""
+
 import os
 
 from datetime import datetime, timedelta
@@ -17,7 +24,16 @@ logger = LoggingUtil.get_logger(__name__)
 
 
 class ForecastRetriever:
+    """
+    A class responsible for retrieving and computing forecasts, particularly for non-controllable loads.
+    It interacts with InfluxDB for historical data and Redis for configuration and device information.
+    """
+
     def __init__(self) -> None:
+        """
+        Initializes the ForecastRetriever with InfluxDB and Redis client instances.
+        It also loads necessary configuration and device information from Redis.
+        """
         self._influx_manager = InfluxManager()
         redis_client = RedisClient()
 
@@ -34,7 +50,26 @@ class ForecastRetriever:
     def non_controllable_loads_forecast(
         self, start_forecast: str, stop_forecast: str, interval: int = 10
     ) -> pd.DataFrame:
-        """Makes the forecast for the non controllable loads."""
+        """
+        Computes the forecast for non-controllable loads using historical data and Prophet.
+
+        This method performs the following steps:
+        1. Defines the start and end times for the forecast.
+        2. Computes the historical non-controllable loads.
+        3. Trains a Prophet model using the historical data.
+        4. Generates a forecast using the trained Prophet model.
+        5. Saves the generated forecast to InfluxDB.
+        6. Returns the forecast as a dictionary.
+
+        Args:
+            start_forecast (str): The ISO formatted string representing the start time of the forecast.
+            stop_forecast (str): The ISO formatted string representing the end time of the forecast.
+            interval (int): The interval in minutes for the forecast data points. Defaults to 10.
+
+        Returns:
+            pd.DataFrame: A pandas DataFrame containing the non-controllable loads forecast,
+                          indexed by timestamp.
+        """
         # Compute start time and end time for the forecast
         start_time_forecast = datetime.fromisoformat(start_forecast).replace(second=0, microsecond=0)
         end_time_forecast = datetime.fromisoformat(stop_forecast).replace(second=0, microsecond=0)
@@ -98,7 +133,16 @@ class ForecastRetriever:
         self,
         non_controllable_loads_historic: pd.DataFrame,
     ) -> Prophet:
-        """Executes the learning of the forecasting model using prophet."""
+        """
+        Executes the training of the forecasting model using the Prophet library.
+
+        Args:
+            non_controllable_loads_historic (pd.DataFrame): Historical data of non-controllable loads
+                                                            with a datetime index and a 'y' column.
+
+        Returns:
+            Prophet: A trained Prophet model instance.
+        """
         # Create the dataframe for prophet
         prophet_df = pd.DataFrame(
             {
@@ -125,7 +169,17 @@ class ForecastRetriever:
         periods: int,
         interval: int = 10,
     ) -> ndarray:
-        """Loads the forecast results"""
+        """
+        Generates future forecasts using a trained Prophet model.
+
+        Args:
+            prophet_model (Prophet): An already trained Prophet model.
+            periods (int): The number of future periods to forecast.
+            interval (int): The frequency interval in minutes for the future dataframe. Defaults to 10.
+
+        Returns:
+            ndarray: A NumPy array containing the forecasted 'yhat' values for the specified periods.
+        """
         # Execute forecast
         future = prophet_model.make_future_dataframe(
             periods=periods, freq=str(interval) + "min"
@@ -137,7 +191,18 @@ class ForecastRetriever:
         return forecast
 
     def _compute_non_controllable_historic(self, start: datetime, stop: datetime) -> pd.DataFrame:
-        """This method computes the non controllable loads."""
+        """
+        Computes the historical non-controllable loads by subtracting controllable loads
+        (thermostats, batteries, EVs, water heaters) from the total power consumption.
+
+        Args:
+            start (datetime): The start datetime for retrieving historical data.
+            stop (datetime): The stop datetime for retrieving historical data.
+
+        Returns:
+            pd.DataFrame: A pandas DataFrame containing the historical non-controllable loads,
+                          indexed by timestamp.
+        """
         # region to load values
         # Retrieve total power consumption
         bucket = self._labels_influx["net_power"]["bucket"]

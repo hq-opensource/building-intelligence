@@ -1,3 +1,10 @@
+"""
+This module provides functionality for detecting blackouts based on data interruptions
+and managing the Grid Response and Protection (GRAP) state.
+It interacts with InfluxDB for historical data, Redis for state management,
+and uses a Redis broker for inter-service communication via RPC calls.
+"""
+
 import asyncio
 
 from datetime import datetime, timedelta
@@ -17,7 +24,8 @@ logger = LoggingUtil.get_logger(__name__)
 
 class DetectBlackout:
     """
-    Retrieves data from the database.
+    A class responsible for detecting blackouts based on data interruptions
+    and communicating this information via Redis and an RPC mechanism.
     """
 
     def __init__(
@@ -26,6 +34,14 @@ class DetectBlackout:
         redis_client: RedisClient,
         broker: RedisBroker,
     ) -> None:
+        """
+        Initializes the DetectBlackout class with InfluxDB and Redis clients, and a Redis broker.
+
+        Args:
+            influx_manager (InfluxManager): An initialized InfluxDB manager instance.
+            redis_client (RedisClient): An initialized Redis client instance.
+            broker (RedisBroker): An initialized FastStream RedisBroker instance for RPC calls.
+        """
         self._influx_manager = influx_manager
         self._redis_client = redis_client
 
@@ -37,9 +53,10 @@ class DetectBlackout:
 
     def detect_blackout_info_locally(self) -> None:
         """
-        Makes the detection of a blackout.
-        Saves on Redis a variable specifying the GRAP state.
-        Takes as input the power limit measured on kWs.
+        Detects blackouts by checking for data interruptions in local InfluxDB.
+        If a blackout is detected and the GRAP function
+        has not been called previously, it saves blackout information to Redis
+        and initiates an RPC call to activate the GRAP function.
         """
         # Verify if the system is executing a GRAP or not
         try:
@@ -92,13 +109,25 @@ class DetectBlackout:
             )
 
     def update_blackout_info_cloud(self) -> None:
-        # TODO: Create logic to talk to the cloud and verify state and power limit
+        """
+        Placeholder for future logic to communicate with a cloud service
+        to verify and update blackout status and power limits.
+        """
         pass
 
     def _detect_last_data_interruption(self, min_gap_minutes: int = 30) -> Tuple[datetime | None, datetime | None]:
         """
-        Detects gaps in data timestamps where the gap is greater than `min_gap_minutes`.
-        Returns the start and end times of the last gap found.
+        Detects the last significant data interruption (blackout) in the 'net_power' measurement
+        from InfluxDB. A gap is considered significant if it exceeds `min_gap_minutes`.
+
+        Args:
+            min_gap_minutes (int): The minimum duration in minutes for a data gap to be considered a blackout.
+                                   Defaults to 30 minutes.
+
+        Returns:
+            Tuple[datetime | None, datetime | None]: A tuple containing the duration of the blackout in minutes
+                                                     and the stop time of the blackout. Returns (None, None)
+                                                     if no blackout is detected.
         """
         # Retrieve energy consumption
         bucket = self._labels_influx["net_power"]["bucket"]
@@ -143,7 +172,15 @@ class DetectBlackout:
         return blackout_duration, blackout_stop
 
     async def _make_rpc_call(self, blackout_info: Dict[str, Any]) -> None:
-        """Make and RPC to the power limit function."""
+        """
+        Makes an RPC (Remote Procedure Call) to the power limit function via the Redis broker.
+        This function sends blackout information and expects a response, which it then logs
+        and uses to update Redis with GRAP-related information.
+
+        Args:
+            blackout_info (Dict[str, Any]): A dictionary containing information about the detected blackout,
+                                            which will be sent as parameters in the RPC request.
+        """
         # Send an RPC request to the Redis event broker and wait for the response
         await self._broker.connect()  # We need to connect each time or else we get an event loop error
         # Define request

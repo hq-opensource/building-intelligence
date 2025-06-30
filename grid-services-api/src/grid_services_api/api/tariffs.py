@@ -1,3 +1,11 @@
+"""
+This module defines the API endpoints for Dynamic Tariffs Optimization within the Grid Services API.
+
+It provides functionalities to send various tariff types (flat, Time-of-Use,
+and consumption shifting) to the Model Predictive Control (MPC) system for
+optimizing grid services based on pricing signals.
+"""
+
 from datetime import datetime
 from typing import Any, Dict
 
@@ -26,7 +34,23 @@ HORIZON = 144
     tags=["Dynamic Tariffs Optimization"],
 )
 async def send_flat_tariff(flat_params: FlatTariffParameters) -> JSONResponse:
-    """Starts the coordination grid function."""
+    """
+    Sends a flat tariff to initiate dynamic tariffs optimization.
+
+    This endpoint takes `FlatTariffParameters` which include a `flat_price`.
+    It constructs a price list for the defined `HORIZON` based on this flat price.
+    An RPC payload is then created with the method `mpc_dynamic_tariff_optimizer`
+    and the generated price list, along with the current date. This payload is
+    published to a topic for grid functions.
+
+    Args:
+        flat_params (FlatTariffParameters): An object containing the flat price
+                                            and the date for which the tariff applies.
+
+    Returns:
+        JSONResponse: The result of the publish operation, typically indicating
+                      the success or failure of sending the RPC payload.
+    """
 
     # Create a log
     logger.info("Executing flat tariff optimization.")
@@ -55,7 +79,25 @@ async def send_flat_tariff(flat_params: FlatTariffParameters) -> JSONResponse:
     tags=["Dynamic Tariffs Optimization"],
 )
 async def send_tou_tariff(tou_params: TouTariffParameters) -> JSONResponse:
-    """Starts the coordination grid function."""
+    """
+    Sends a Time-of-Use (ToU) tariff to initiate dynamic tariffs optimization.
+
+    This endpoint takes `TouTariffParameters` which define the on-peak and
+    off-peak prices and their respective time windows. It constructs a price
+    list for the defined `HORIZON` based on these parameters. An RPC payload
+    is then created with the method `mpc_dynamic_tariff_optimizer` and the
+    generated price list, along with the current date. This payload is
+    published to a topic for grid functions.
+
+    Args:
+        tou_params (TouTariffParameters): An object containing the ToU tariff
+                                          parameters, including peak and off-peak
+                                          times and values.
+
+    Returns:
+        JSONResponse: The result of the publish operation, typically indicating
+                      the success or failure of sending the RPC payload.
+    """
 
     # Create a log
     logger.info("Executing Time of Use tariff optimization.")
@@ -100,7 +142,25 @@ async def send_tou_tariff(tou_params: TouTariffParameters) -> JSONResponse:
 async def send_shift_consumption_tariff(
     shift_consumption_params: ShiftConsumptionParameters,
 ) -> JSONResponse:
-    """Starts the coordination grid function."""
+    """
+    Sends a consumption shifting tariff to initiate dynamic tariffs optimization.
+
+    This endpoint takes `ShiftConsumptionParameters` which define a flat price,
+    and multipliers for price increase and reduction during specified time windows.
+    It constructs a price profile for the defined `HORIZON` based on these parameters.
+    An RPC payload is then created with the method `mpc_dynamic_tariff_optimizer`
+    and the generated price list, along with the current date. This payload is
+    published to a topic for grid functions.
+
+    Args:
+        shift_consumption_params (ShiftConsumptionParameters): An object containing
+                                                               the parameters for
+                                                               the consumption shifting tariff.
+
+    Returns:
+        JSONResponse: The result of the publish operation, typically indicating
+                      the success or failure of sending the RPC payload.
+    """
 
     # Create a log
     logger.info("Executing shift consumption optimization.")
@@ -137,6 +197,19 @@ async def send_shift_consumption_tariff(
 
 
 def _convert_datetime_to_int(date: datetime) -> int:
+    """
+    Converts a datetime object to an integer representation based on 10-minute intervals.
+
+    This helper function calculates the total number of 10-minute steps from
+    the beginning of the day up to the given datetime. This is used for
+    indexing time-series data within a fixed horizon.
+
+    Args:
+        date (datetime): The datetime object to convert.
+
+    Returns:
+        int: The total number of 10-minute steps from the start of the day.
+    """
     dac_timestemp = 10
 
     # Convert hours to steps

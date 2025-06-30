@@ -14,8 +14,14 @@ logger = LoggingUtil.get_logger(__name__)
 class HistoricalDataReader:
     """Class created to read and overwrite values from InfluxDB."""
 
-    # init
     def __init__(self, influx_manager: InfluxManager, redis_client: RedisClient) -> None:
+        """
+        Initializes the HistoricalDataReader class.
+
+        Args:
+            influx_manager (InfluxManager): An instance of the InfluxManager.
+            redis_client (RedisClient): An instance of the RedisClient.
+        """
         # Define database clients
         self._influx_manager = influx_manager
         self._redis_client = redis_client
@@ -32,7 +38,17 @@ class HistoricalDataReader:
         stop: datetime,
         devices: List[str],
     ) -> dict[str, list]:
-        """Retrieve state of devices from InfluxDB."""
+        """
+        Retrieves historical data for a list of devices.
+
+        Args:
+            start (datetime): The start time of the query.
+            stop (datetime): The end time of the query.
+            devices (List[str]): A list of device IDs.
+
+        Returns:
+            dict[str, list]: A dictionary containing the historical data for each device.
+        """
         to_return = {}
         # Define a dictionary to map device types to their corresponding methods
         device_type_to_method = {
@@ -62,12 +78,32 @@ class HistoricalDataReader:
         return to_return
 
     def _get_device_type(self, entity_id: str) -> str:
+        """
+        Gets the type of a device.
+
+        Args:
+            entity_id (str): The ID of the device.
+
+        Returns:
+            str: The type of the device.
+        """
         device_type = DeviceHelper.get_all_values_by_filtering_devices(
             device_list=self._devices, filter_key="entity_id", filter_value=entity_id, target_key="type"
         )
         return device_type[0]
 
     def _get_space_heating_data(self, start: datetime, stop: datetime, entity_id: str) -> list:
+        """
+        Gets historical data for a space heating device.
+
+        Args:
+            start (datetime): The start time of the query.
+            stop (datetime): The end time of the query.
+            entity_id (str): The ID of the device.
+
+        Returns:
+            list: A list containing the historical data.
+        """
         # Get all entity ids of the thermal zones
         bucket = self._labels_influx["sh_temperature"]["bucket"]
         measurement = self._labels_influx["sh_temperature"]["measurement"]
@@ -82,6 +118,17 @@ class HistoricalDataReader:
         return self._get_data(start, stop, bucket, measurement, fields, tags)
 
     def _get_ev_charger_data(self, start: datetime, stop: datetime, entity_id: str) -> list:
+        """
+        Gets historical data for an EV charger device.
+
+        Args:
+            start (datetime): The start time of the query.
+            stop (datetime): The end time of the query.
+            entity_id (str): The ID of the device.
+
+        Returns:
+            list: A list containing the historical data.
+        """
         # Build the desired state
         bucket = self._labels_influx["ev_charger_net_power"]["bucket"]
         measurement = self._labels_influx["ev_charger_net_power"]["measurement"]
@@ -96,6 +143,17 @@ class HistoricalDataReader:
         return self._get_data(start, stop, bucket, measurement, fields, tags)
 
     def _get_v1g_data(self, start: datetime, stop: datetime, entity_id: str) -> list:
+        """
+        Gets historical data for a V1G device.
+
+        Args:
+            start (datetime): The start time of the query.
+            stop (datetime): The end time of the query.
+            entity_id (str): The ID of the device.
+
+        Returns:
+            list: A list containing the historical data.
+        """
         # Build the desired state
         bucket = self._labels_influx["v1g_time_series_of_charge"]["bucket"]
         measurement = self._labels_influx["v1g_time_series_of_charge"]["measurement"]
@@ -110,6 +168,17 @@ class HistoricalDataReader:
         return self._get_data(start, stop, bucket, measurement, fields, tags)
 
     def _get_v2g_data(self, start: datetime, stop: datetime, entity_id: str) -> list:
+        """
+        Gets historical data for a V2G device.
+
+        Args:
+            start (datetime): The start time of the query.
+            stop (datetime): The end time of the query.
+            entity_id (str): The ID of the device.
+
+        Returns:
+            list: A list containing the historical data.
+        """
         bucket = self._labels_influx["v2g_time_series_of_charge"]["bucket"]
         measurement = self._labels_influx["v2g_time_series_of_charge"]["measurement"]
         tags = self._labels_influx["v2g_time_series_of_charge"]["tags"]
@@ -123,6 +192,17 @@ class HistoricalDataReader:
         return self._get_data(start, stop, bucket, measurement, fields, tags)
 
     def _get_electric_storage_data(self, start: datetime, stop: datetime, entity_id: str) -> list:
+        """
+        Gets historical data for an electric storage device.
+
+        Args:
+            start (datetime): The start time of the query.
+            stop (datetime): The end time of the query.
+            entity_id (str): The ID of the device.
+
+        Returns:
+            list: A list containing the historical data.
+        """
         bucket = self._labels_influx["eb_time_series_of_charge"]["bucket"]
         measurement = self._labels_influx["eb_time_series_of_charge"]["measurement"]
         tags = self._labels_influx["eb_time_series_of_charge"]["tags"]
@@ -136,6 +216,17 @@ class HistoricalDataReader:
         return self._get_data(start, stop, bucket, measurement, fields, tags)
 
     def _get_water_heater_data(self, start: datetime, stop: datetime, entity_id: str) -> list:
+        """
+        Gets historical data for a water heater device.
+
+        Args:
+            start (datetime): The start time of the query.
+            stop (datetime): The end time of the query.
+            entity_id (str): The ID of the device.
+
+        Returns:
+            list: A list containing the historical data.
+        """
         bucket = self._labels_influx["wh_temperature"]["bucket"]
         measurement = self._labels_influx["wh_temperature"]["measurement"]
         tags = self._labels_influx["wh_temperature"]["tags"]
@@ -149,6 +240,17 @@ class HistoricalDataReader:
         return self._get_data(start, stop, bucket, measurement, fields, tags)
 
     def _get_thermal_storage_data(self, start: datetime, stop: datetime, entity_id: str) -> list:
+        """
+        Gets historical data for a thermal storage device.
+
+        Args:
+            start (datetime): The start time of the query.
+            stop (datetime): The end time of the query.
+            entity_id (str): The ID of the device.
+
+        Returns:
+            list: A list containing the historical data.
+        """
         bucket = self._labels_influx["ts_time_series_of_charge"]["bucket"]
         measurement = self._labels_influx["ts_time_series_of_charge"]["measurement"]
         tags = self._labels_influx["ts_time_series_of_charge"]["tags"]
@@ -163,7 +265,20 @@ class HistoricalDataReader:
     def _get_data(
         self, start: datetime, stop: datetime, bucket: str, measurement: str, fields: List[str], tags: Dict[str, str]
     ) -> list:
-        """Retrieve last measure registered on InfluxDB."""
+        """
+        Retrieve data from InfluxDB.
+
+        Args:
+            start (datetime): The start time of the query.
+            stop (datetime): The end time of the query.
+            bucket (str): The bucket to query.
+            measurement (str): The measurement to query.
+            fields (List[str]): The fields to query.
+            tags (Dict[str, str]): The tags to query.
+
+        Returns:
+            list: A list containing the data.
+        """
         query_result = self._influx_manager.read(start, stop, measurement, fields, bucket, tags)
         if len(query_result) == 0:
             logger.error(f"An error occured retrieving historical data of a device. Fields: {fields}")

@@ -54,6 +54,19 @@ async def request_preferences_data(
         description="Sampling interval in minutes.",
     ),
 ) -> JSONResponse:
+    """
+    Get preferences data.
+
+    Args:
+        preferences_type (PreferencesType): The type of data to retrieve.
+        device_id (str): Device ID.
+        start (datetime): Start timestamp.
+        stop (datetime): Stop timestamp.
+        sampling_in_minutes (int): Sampling interval in minutes.
+
+    Returns:
+        JSONResponse: A response containing the preferences data.
+    """
     if not all([device_id, start, stop]):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

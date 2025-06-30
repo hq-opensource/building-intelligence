@@ -1,3 +1,10 @@
+"""
+This module provides the InfluxManager class for interacting with InfluxDB.
+
+It includes functionalities for reading, writing, and querying time-series data,
+as well as managing buckets and retrieving metadata like measurements and fields.
+"""
+
 import os
 
 from datetime import datetime, timedelta
@@ -15,7 +22,12 @@ logger = LoggingUtil.get_logger(__name__)
 
 
 class InfluxManager:
-    """Creates an InfluxDB client preconfigured to read and write to the local InfluxDB."""
+    """
+    Manages interactions with InfluxDB, providing methods for reading, writing, and querying data.
+
+    This class encapsulates the InfluxDB client and offers a simplified interface for common database operations,
+    including handling dataframes, managing buckets, and retrieving measurement and field keys.
+    """
 
     _influx_client: InfluxDBClient
 
@@ -25,6 +37,14 @@ class InfluxManager:
         org: str = os.getenv("INFLUXDB_ORG"),
         token: str = os.getenv("INFLUXDB_TOKEN"),
     ) -> None:
+        """
+        Initializes the InfluxManager with connection details for InfluxDB.
+
+        Args:
+            url (str): The URL of the InfluxDB instance. Defaults to INFLUXDB_URL environment variable.
+            org (str): The organization name in InfluxDB. Defaults to INFLUXDB_ORG environment variable.
+            token (str): The authentication token for InfluxDB. Defaults to INFLUXDB_TOKEN environment variable.
+        """
         self._influx_client = InfluxDBClient(url=url, token=token, org=org, timeout=30000)
 
     def read(
@@ -38,7 +58,22 @@ class InfluxManager:
         interval: str = "10m",  # New parameter for downsampling interval
         agg_func: str = "mean",  # New parameter for aggregation function
     ) -> pd.DataFrame:
-        """Reads from InfluxDB with optional downsampling using aggregateWindow()."""
+        """
+        Reads data from InfluxDB for a specified time range, measurement, and fields, with optional downsampling.
+
+        Args:
+            start (datetime): The start timestamp for the query.
+            stop (datetime): The stop timestamp for the query.
+            msname (str): The measurement name to query.
+            fields (List[str]): A list of field names to retrieve.
+            bucket (str): The InfluxDB bucket name.
+            tags (Dict[str, str] | None): Optional tags to filter the query. Defaults to None.
+            interval (str): The downsampling interval (e.g., "10m", "1h"). Defaults to "10m".
+            agg_func (str): The aggregation function to apply (e.g., "mean", "last"). Defaults to "mean".
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the queried data, indexed by time.
+        """
 
         if tags is None:
             tags = {}
@@ -82,7 +117,16 @@ class InfluxManager:
         return results_to_return
 
     def get_write_api(self, tags: Dict[str, str] | None = None) -> WriteApi:
-        """Gets the write API from InfluxDB."""
+        """
+        Retrieves a configured InfluxDB WriteApi instance.
+
+        Args:
+            tags (Dict[str, str] | None): Optional default tags to apply to all points written using this API.
+                                          Defaults to None.
+
+        Returns:
+            WriteApi: An InfluxDB WriteApi instance.
+        """
         if tags is None:
             tags = {}
 
@@ -93,17 +137,35 @@ class InfluxManager:
         return self._influx_client.write_api(point_settings=point_settings)
 
     def get_buckets_api(self) -> BucketsApi:
-        """Gets the current buckets on InfluxDB."""
+        """
+        Retrieves the InfluxDB BucketsApi instance.
+
+        Returns:
+            BucketsApi: An InfluxDB BucketsApi instance.
+        """
         return self._influx_client.buckets_api()
 
     def get_query_api(self) -> QueryApi:
-        """Gets the current buckets on InfluxDB."""
+        """
+        Retrieves the InfluxDB QueryApi instance.
+
+        Returns:
+            QueryApi: An InfluxDB QueryApi instance.
+        """
         return self._influx_client.query_api()
 
     def synchronous_write(
         self, bucket: str, data: pd.DataFrame, data_frame_measurement_name: str, tags: Dict[str, str] | None = None
     ) -> None:
-        """Writes to InfluxDB."""
+        """
+        Writes a pandas DataFrame to InfluxDB synchronously.
+
+        Args:
+            bucket (str): The InfluxDB bucket to write to.
+            data (pd.DataFrame): The DataFrame containing the data to write.
+            data_frame_measurement_name (str): The measurement name to use for the DataFrame.
+            tags (Dict[str, str] | None): Optional tags to apply to all points in the DataFrame. Defaults to None.
+        """
         if tags is None:
             tags = {}
 
@@ -122,7 +184,19 @@ class InfluxManager:
         bucket: str,
         tags: Dict[str, str] | None = None,
     ) -> pd.DataFrame:
-        """Reads all fields from a given measurement in InfluxDB."""
+        """
+        Reads all fields from a given measurement within a specified time range in InfluxDB.
+
+        Args:
+            start (datetime): The start timestamp for the query.
+            stop (datetime): The stop timestamp for the query.
+            msname (str): The measurement name to query.
+            bucket (str): The InfluxDB bucket name.
+            tags (Dict[str, str] | None): Optional tags to filter the query. Defaults to None.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing all fields for the specified measurement, indexed by time.
+        """
         if tags is None:
             tags = {}
 
@@ -168,6 +242,24 @@ class InfluxManager:
         timestep: int,
         tags: Dict[str, str] | None = None,
     ) -> pd.DataFrame:
+        """
+        Reads accumulated values (differences between consecutive points) for specified fields from InfluxDB.
+
+        This method calculates the difference between consecutive 'last' values within each `timestep` interval.
+        Useful for meters that report total accumulated values, to get the consumption over an interval.
+
+        Args:
+            start (datetime): The start timestamp for the query.
+            stop (datetime): The stop timestamp for the query.
+            msname (str): The measurement name to query.
+            fields (List[str]): A list of field names to retrieve.
+            bucket (str): The InfluxDB bucket name.
+            timestep (int): The time interval in minutes for aggregation and difference calculation.
+            tags (Dict[str, str] | None): Optional tags to filter the query. Defaults to None.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the accumulated values, indexed by time.
+        """
         if tags is None:
             tags = {}
 
@@ -217,6 +309,24 @@ class InfluxManager:
         duration: int,
         tags: Dict[str, str] | None = None,
     ) -> pd.DataFrame:
+        """
+        Reads accumulated values (differences between consecutive points) for specified fields from InfluxDB,
+        with a duration specified in seconds.
+
+        Similar to `read_accumulated_value` but allows for second-level duration specification.
+
+        Args:
+            start (datetime): The start timestamp for the query.
+            stop (datetime): The stop timestamp for the query.
+            msname (str): The measurement name to query.
+            fields (List[str]): A list of field names to retrieve.
+            bucket (str): The InfluxDB bucket name.
+            duration (int): The time interval in seconds for aggregation and difference calculation.
+            tags (Dict[str, str] | None): Optional tags to filter the query. Defaults to None.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the accumulated values, indexed by time.
+        """
         if tags is None:
             tags = {}
 
@@ -334,7 +444,19 @@ class InfluxManager:
     def read_last_data_point(
         self, bucket: str, measurement: str, fields: List[str], tags: Dict[str, str] | None = None
     ) -> Dict[str, Any]:
-        """Reads last data point from InfluxDB."""
+        """
+        Reads the last data point for specified fields from a given measurement in InfluxDB.
+
+        Args:
+            bucket (str): The InfluxDB bucket name.
+            measurement (str): The measurement name to query.
+            fields (List[str]): A list of field names to retrieve the last value for.
+            tags (Dict[str, str] | None): Optional tags to filter the query. Defaults to None.
+
+        Returns:
+            Dict[str, Any]: A dictionary where keys are field names and values are their last recorded data points.
+                            Returns an empty dictionary or an error message if no data is found or an error occurs.
+        """
         if tags is None:
             tags = {}
 
@@ -387,7 +509,16 @@ class InfluxManager:
         return result
 
     def get_measurements_on_bucket(self, bucket: str) -> List[str]:
-        """Retrieves all measurement names in a given bucket."""
+        """
+        Retrieves all measurement names present in a specified InfluxDB bucket.
+
+        Args:
+            bucket (str): The name of the InfluxDB bucket.
+
+        Returns:
+            List[str]: A list of measurement names found in the bucket. Returns an empty list if no measurements
+                       are found or an error occurs.
+        """
         query = f'''
             import "influxdata/influxdb/schema"
             schema.measurements(bucket: "{bucket}")
@@ -402,7 +533,17 @@ class InfluxManager:
             return []
 
     def get_fields(self, bucket: str, measurement: str) -> List[str]:
-        """Retrieves all field names for a specific measurement in a bucket."""
+        """
+        Retrieves all field names for a specific measurement within a given InfluxDB bucket.
+
+        Args:
+            bucket (str): The name of the InfluxDB bucket.
+            measurement (str): The name of the measurement.
+
+        Returns:
+            List[str]: A list of field names for the specified measurement. Returns an empty list if no fields
+                       are found or an error occurs.
+        """
         query = f'''
             import "influxdata/influxdb/schema"
             schema.fieldKeys(bucket: "{bucket}", predicate: (r) => r._measurement == "{measurement}", start: -3h)

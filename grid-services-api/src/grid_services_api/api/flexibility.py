@@ -1,3 +1,10 @@
+"""
+This module defines the API endpoints for Flexibility Requests within the Grid Services API.
+
+It provides functionalities to request and estimate the flexibility of connected
+devices, typically for direct load control purposes.
+"""
+
 from datetime import datetime
 from typing import Any, Dict
 
@@ -28,7 +35,22 @@ async def get_flexibility(
         le=600,
     ),
 ) -> JSONResponse:
-    """Requests the flexibility from all subscribed users."""
+    """
+    Requests the flexibility from all subscribed users or devices.
+
+    This endpoint sends an RPC request to estimate the flexibility of connected
+    devices over a specified duration. The duration parameter defines the
+    time window in seconds for which the consumption should be computed.
+    The request is then published to a topic for direct load control flexibility estimation.
+
+    Args:
+        duration (int): The duration in seconds to compute the consumption.
+                        Must be between 60 and 600 seconds (inclusive).
+
+    Returns:
+        JSONResponse: The result of the publish operation, typically indicating
+                      the success or failure of sending the RPC payload.
+    """
     # Request flexibility
     # Build the message
     rpc_payload: Dict[str, Any] = {

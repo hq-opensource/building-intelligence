@@ -1,3 +1,10 @@
+"""
+This module provides the `RedisYAMLSaver` class for uploading YAML file data to Redis.
+
+It facilitates reading YAML files from a specified folder and storing their content
+in Redis, using the filename as the Redis key.
+"""
+
 from pathlib import Path
 
 import yaml
@@ -10,24 +17,36 @@ logger = LoggingUtil.get_logger(__name__)
 
 
 class RedisYAMLSaver:
+    """
+    A utility class for uploading YAML file data to Redis.
+
+    This class provides methods to read YAML files from a specified folder
+    and store their content in Redis, using the filename (without extension)
+    as the Redis key.
+    """
+
     def __init__(
         self,
         redis_client: RedisClient,
     ) -> None:
         """
-        Initialize the RedisDevicesSaver with a Redis client and the path to the folder containing YAML files.
+        Initializes the RedisYAMLSaver with a Redis client.
 
         Args:
-            redis_client (RedisClient): The Redis client instance.
-            folder_path (str): The folder that contains the yaml files.
+            redis_client (RedisClient): The Redis client instance used for saving data.
         """
         self._redis_client = redis_client
 
     def upload_yaml_files_to_redis(self, folder_path: str) -> None:
         """
-        Finds all YAML files in the folder and uploads the data to Redis.
-        Each file will be saved in Redis with the file name as the key and field data
-        (with field IDs as subkeys) as the value.
+        Discovers and uploads all YAML files from a given folder to Redis.
+
+        Each YAML file's content is parsed and saved to Redis. The Redis key
+        for each entry is derived from the filename (e.g., 'my_config.yaml'
+        becomes 'my_config' in Redis).
+
+        Args:
+            folder_path (str): The path to the folder containing the YAML files.
         """
         # List all YAML files in the folder
         folder = Path(folder_path)
@@ -38,6 +57,18 @@ class RedisYAMLSaver:
             self.upload_yaml_file_to_redis(yaml_file)
 
     def upload_yaml_file_to_redis(self, yaml_file: Path, redis_key: str | None = None) -> None:
+        """
+        Uploads a single YAML file's content to Redis.
+
+        The content of the YAML file is parsed and stored in Redis. The Redis key
+        can be explicitly provided; otherwise, the filename (without extension)
+        is used as the key.
+
+        Args:
+            yaml_file (Path): The path object of the YAML file to upload.
+            redis_key (str | None): Optional. The key to use when saving data to Redis.
+                                     If None, the filename (without extension) is used.
+        """
         try:
             with yaml_file.open("r") as f:
                 # Parse the YAML file

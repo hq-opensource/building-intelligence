@@ -1,3 +1,10 @@
+"""
+This module defines the API endpoints for Model Predictive Control (MPC) within the Grid Services API.
+
+It provides functionalities to send MPC requests with various parameters
+to optimize grid services.
+"""
+
 from datetime import datetime
 from typing import Any, Dict
 
@@ -21,6 +28,24 @@ MpcAPI = APIRouter()
     tags=["MPC"],
 )
 async def send_mpc_request(parameters: MpcParameters | None = None) -> JSONResponse:
+    """
+    Sends an MPC (Model Predictive Control) request with optional parameters.
+
+    This endpoint constructs an RPC payload for the MPC system. If `parameters`
+    are provided, they are included in the payload, enabling specific
+    configurations for the MPC run, such as enabled device types, price and
+    power limit profiles, and the optimization horizon. The request is then
+    published to a predefined topic for MPC grid functions.
+
+    Args:
+        parameters (MpcParameters | None): An optional object containing the
+                                           MPC configuration parameters. If None,
+                                           default MPC behavior is assumed.
+
+    Returns:
+        JSONResponse: The result of the publish operation, typically indicating
+                      the success or failure of sending the RPC payload.
+    """
     logger.info("Sending an MPC request with parameters: %s", parameters)
     from grid_services_api.app import labels_channels
 

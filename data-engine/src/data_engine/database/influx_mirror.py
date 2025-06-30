@@ -1,3 +1,9 @@
+"""
+This module provides the InfluxMirror class for synchronizing data from InfluxDB Cloud
+to a local InfluxDB instance. It handles fetching measurements, fields, and historical data,
+and then writing this data to the local database.
+"""
+
 import os
 import time
 
@@ -26,13 +32,33 @@ class InfluxMirror:
         local_org: str = os.getenv("INFLUXDB_ORG"),
         local_bucket: str = os.getenv("LOCAL_INFLUX_BUCKET"),
     ) -> None:
+        """
+        Initializes the InfluxMirror with cloud and local InfluxDB connection details.
+
+        Args:
+            cloud_url (str): URL for the InfluxDB Cloud instance.
+            cloud_token (str): Authentication token for InfluxDB Cloud.
+            cloud_org (str): Organization name for InfluxDB Cloud.
+            cloud_bucket (str): Default bucket name for InfluxDB Cloud.
+            local_url (str): URL for the local InfluxDB instance.
+            local_token (str): Authentication token for local InfluxDB.
+            local_org (str): Organization name for local InfluxDB.
+            local_bucket (str): Default bucket name for local InfluxDB.
+        """
         self.cloud_manager = InfluxManager(cloud_url, cloud_org, cloud_token)
         self.local_manager = InfluxManager(local_url, local_org, local_token)
         self.default_cloud_bucket = cloud_bucket
         self.default_local_bucket = local_bucket
 
     def sync_all_measurements(self, cloud_bucket: str, local_bucket: str) -> None:
-        """Fetches the last specified hours of data for all measurements and writes to local InfluxDB."""
+        """
+        Fetches the last specified hours of data for all measurements from InfluxDB Cloud
+        and writes them to a local InfluxDB instance.
+
+        Args:
+            cloud_bucket (str): The bucket name in InfluxDB Cloud to read from.
+            local_bucket (str): The bucket name in local InfluxDB to write to.
+        """
         now = datetime.now().astimezone()
         stop_time = now + timedelta(hours=130)
         start_time = now - timedelta(hours=5)
@@ -84,7 +110,10 @@ class InfluxMirror:
         logger.info("Completed sync for bucket %s at %s", cloud_bucket, datetime.now().astimezone())
 
     def run(self) -> None:
-        """Schedules the sync task to run periodically."""
+        """
+        Schedules the sync task to run periodically.
+        Performs an initial sync immediately and then schedules hourly syncs.
+        """
         # Execute the first sync immediately
         logger.info("Running initial sync task")
         self.sync_all_measurements(cloud_bucket=self.default_cloud_bucket, local_bucket=self.default_local_bucket)
@@ -101,7 +130,10 @@ class InfluxMirror:
             time.sleep(60)
 
     def __del__(self) -> None:
-        """Closes clients when the object is destroyed."""
+        """
+        Closes the InfluxDB client connections when the InfluxMirror object is destroyed.
+        Ensures proper resource cleanup.
+        """
         self.cloud_manager._influx_client.close()
         self.local_manager._influx_client.close()
 

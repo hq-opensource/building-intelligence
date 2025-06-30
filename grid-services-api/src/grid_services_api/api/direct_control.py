@@ -1,3 +1,10 @@
+"""
+This module defines the API endpoints for Direct Load Control within the Grid Services API.
+
+It provides functionalities to directly control devices by sending setpoints
+and power limits to subscribed users or devices.
+"""
+
 from datetime import datetime
 from typing import Any, Dict
 
@@ -22,7 +29,23 @@ DirectControlAPI = APIRouter()
 async def set_device_setpoint(
     setpoint_request: SetpointRequest,
 ) -> JSONResponse:
-    """Sends a fix setpoint to all subscribed users."""
+    """
+    Sends a fixed setpoint to all subscribed devices of a specific type.
+
+    This endpoint allows for direct load control by sending a setpoint
+    (e.g., a temperature, power level) and a duration to devices.
+    The request is encapsulated in an RPC payload and published to a topic
+    that targets the dynamic writer for direct load control.
+
+    Args:
+        setpoint_request (SetpointRequest): An object containing the device type,
+                                            the setpoint value, and the duration
+                                            for which the setpoint should be applied.
+
+    Returns:
+        JSONResponse: The result of the publish operation, typically indicating
+                      the success or failure of sending the RPC payload.
+    """
     logger.info(
         "Sending %s setpoint for %s minutes to the device(s) of type %s.",
         setpoint_request.setpoint,
@@ -56,7 +79,23 @@ async def set_device_setpoint(
 async def power_limit(
     power_limit: PowerLimit | None = None,
 ) -> JSONResponse:
-    """Sends power limits to the users."""
+    """
+    Sends power limits to subscribed users or devices.
+
+    This endpoint allows for setting a power limit. If a `power_limit` object
+    is provided, its `limit` attribute is included in the RPC payload.
+    The request is then published to a topic for power limit control.
+
+    Args:
+        power_limit (PowerLimit | None): An optional object containing the
+                                         power limit value. If None, no specific
+                                         limit is sent, but the control method
+                                         is still invoked.
+
+    Returns:
+        JSONResponse: The result of the publish operation, typically indicating
+                      the success or failure of sending the RPC payload.
+    """
 
     from grid_services_api.app import labels_channels
 

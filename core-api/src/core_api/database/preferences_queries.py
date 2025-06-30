@@ -70,9 +70,11 @@ class PreferencesQueries:
 
     def __init__(self, influx_manager: InfluxManager, redis_client: RedisClient) -> None:
         """
+        Initializes the PreferencesQueries class.
+
         Args:
-            influx_manager: InfluxDB database manager
-            redis_client: Redis client
+            influx_manager (InfluxManager): An instance of the InfluxManager.
+            redis_client (RedisClient): An instance of the RedisClient.
         """
         self._influx_manager = influx_manager
         self._redis_client = redis_client
@@ -147,25 +149,69 @@ class PreferencesQueries:
     def load_comfort_setpoints(
         self, device_id: str, start: datetime, stop: datetime, sampling_in_minutes: int
     ) -> pd.DataFrame:
-        """Loads comfort setpoints preferences."""
+        """
+        Loads comfort setpoints preferences.
+
+        Args:
+            device_id (str): The ID of the device.
+            start (datetime): The start time of the query.
+            stop (datetime): The end time of the query.
+            sampling_in_minutes (int): The sampling interval in minutes.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the comfort setpoints preferences.
+        """
         return self.load_preferences(device_id, start, stop, PreferenceType.PREFERENCES_SETPOINT, sampling_in_minutes)
 
     def load_electric_battery_soc_preferences(
         self, device_id: str, start: datetime, stop: datetime, sampling_in_minutes: int
     ) -> pd.DataFrame:
-        """Loads electric battery state of charge preferences."""
+        """
+        Loads electric battery state of charge preferences.
+
+        Args:
+            device_id (str): The ID of the device.
+            start (datetime): The start time of the query.
+            stop (datetime): The end time of the query.
+            sampling_in_minutes (int): The sampling interval in minutes.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the electric battery state of charge preferences.
+        """
         return self.load_preferences(device_id, start, stop, PreferenceType.PREFERENCES_SOC, sampling_in_minutes)
 
     def load_occupancy_preferences(
         self, device_id: str, start: datetime, stop: datetime, sampling_in_minutes: int
     ) -> pd.DataFrame:
-        """Loads occupancy preferences."""
+        """
+        Loads occupancy preferences.
+
+        Args:
+            device_id (str): The ID of the device.
+            start (datetime): The start time of the query.
+            stop (datetime): The end time of the query.
+            sampling_in_minutes (int): The sampling interval in minutes.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the occupancy preferences.
+        """
         return self.load_preferences(device_id, start, stop, PreferenceType.PREFERENCES_OCCUPANCY, sampling_in_minutes)
 
     def load_vehicle_branched_preferences(
         self, device_id: str, start: datetime, stop: datetime, sampling_in_minutes: int
     ) -> pd.DataFrame:
-        """Loads vehicle branched preferences."""
+        """
+        Loads vehicle branched preferences.
+
+        Args:
+            device_id (str): The ID of the device.
+            start (datetime): The start time of the query.
+            stop (datetime): The end time of the query.
+            sampling_in_minutes (int): The sampling interval in minutes.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the vehicle branched preferences.
+        """
         return self.load_preferences(device_id, start, stop, PreferenceType.PREFERENCES_BRANCHED, sampling_in_minutes)
 
     def load_vehicle_soc_preferences(
