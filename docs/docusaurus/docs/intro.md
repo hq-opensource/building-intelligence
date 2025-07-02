@@ -11,16 +11,56 @@ Welcome to the Building Intelligence project! This documentation provides a comp
 
 ## What is Building Intelligence?
 
-![Building Intelligence Diagram](/img/hems.png)
 
 **Building Intelligence** is an open-source platform designed to simplify the interaction between building devices and third-party applications, empowering developers to create advanced energy management solutions. Building Intelligence focuses specifically on the **building intelligence** layer, making utility-scale complex energy optimization scenarios accessible and manageable.
 
 Building Intelligence's core mission is to make it easier for power utilities to develop custom grid services. By handling the ingestion, processing, and storage of data from building actuators, Building Intelligence streamlines development and ensures seamless interaction with both local and cloud-based systems. Additionally, it greatly simplifies the test and development of new grid services to optimize energy efficiency or participate in demand response utility programs.
 
-Building Intelligence acts as a bridge between three different cloud and edge entities:
-- **Utility coordinators:** The utility coordinators are cloud entities that could be deployed in a centralized or distributed manner throughout the grid. The utility coordinators are the ones that activate the grid services.
-- **Building controllers:** The building controllers refer to systems that gather information about their state and allow control.
-- **Grid services:** Third-party applications that enable advanced energy optimization.
+## System Architecture
+![Building Intelligence Diagram](/img/hems.png)
+
+
+The architecture of the Building Intelligence platform is modular, consisting of three primary layers: **Smart Devices**, **Building Intelligence**, and **Grid Services**. This design separates the device-level communication, data management, and high-level control logic, creating a flexible and scalable system.
+
+### Smart Devices
+
+This layer represents the physical hardware and communication protocols at the building level. It is responsible for interfacing with various smart devices and sensors.
+
+-   **Communication Protocols**: The platform supports standard industry protocols like **Modbus**, **Bacnet**, and **Zigbee** to ensure broad compatibility with a wide range of devices.
+-   **Event Broker**: A local event broker is used to decouple the communication between the physical devices and the higher-level interfaces.
+-   **Interfaces**:
+    -   **Telegraf**: An open-source agent for collecting and reporting metrics and data. It is primarily used for data ingestion from various sources.
+    -   **Home Assistant Interface**: This component provides a two-way communication link with devices integrated through the Home Assistant platform, allowing for both data collection and control signal actuation.
+
+### Building Intelligence
+
+This is the core middleware of the platform, acting as the central hub for data processing, storage, and communication.
+
+-   **Databases (DBs)**: The platform uses a combination of **InfluxDB** for storing time-series data and **Redis** for caching and real-time messaging, ensuring both performance and scalability.
+-   **Data Engine**: This is the "brains" of the data processing operations. It includes modules for:
+    -   **Telemetry**: Collecting and processing data from the smart devices.
+    -   **Forecasters**: Using machine learning models to predict future energy consumption and generation.
+    -   **Learners**: Continuously improving the models based on new data.
+-   **Initializer**: This component is responsible for setting up the initial system configuration, including default user preferences, which are stored in the databases.
+-   **Event Broker**: A central message bus that facilitates communication between the various internal components of the Building Intelligence layer.
+-   **Core API (REST)**: A RESTful API that exposes the platform's data and functionalities to the **Grid Services** layer. This is the primary integration point for external control logic.
+-   **Grid Services API & Frontend**: These components provide the user interface of the platform. The **Frontend** allows users to monitor their devices, set preferences, and visualize data. It communicates with the backend through the **Grid Services API**.
+
+### Grid Services
+
+This layer contains the high-level optimization and control logic. These services are external to the Building Intelligence platform and interact with it through the **Core API**. This separation allows for the development and deployment of various control strategies without modifying the core platform.
+
+The diagram shows several examples of Grid Services, some of which are already developed (in green) and others that are on the roadmap (in yellow):
+
+-   **Developed by the LTE**:
+    -   `CLPU - Reactive`
+    -   `CLPU - Predictive (MPC+RTC)`
+    -   `Dynamic Tariffs (MPC)`
+-   **On the Roadmap**:
+    -   `MPC for Commercial and Institutional buildings`
+    -   `Demand Coordination`
+    -   `AI Energy Assistant`
+    -   `Energy Efficiency`
 
 ## Features
 
@@ -70,19 +110,30 @@ The project is organized into several key packages, each with a specific respons
 
 *   **Initializers (`initializers`)**: This package is responsible for the initial setup and configuration of the entire system. It ensures that databases are correctly structured, device configurations are loaded, and user profiles are created, providing a smooth and reliable startup process.
 
-## How Does It Work?
+## Data and Control Flow
 
-The Building Intelligence platform operates on a continuous loop of data collection, analysis, and action:
+The platform operates through a continuous and cyclical flow of data and control signals, ensuring a responsive and intelligent energy management system.
 
-1.  **Data Acquisition**: The system continuously collects data from a variety of sources, including smart meters, sensors, and connected devices. This data is stored in a time-series database (InfluxDB) for historical analysis.
+### Data Flow (Southbound to Northbound)
 
-2.  **Forecasting and Prediction**: The `data-engine` uses historical data and machine learning models to forecast future energy consumption and generation. This allows the system to anticipate future conditions and plan accordingly.
+1.  **Device Communication**: **Smart Devices** communicate using their native protocols (Modbus, Bacnet, Zigbee). This communication is captured by a local **Event Broker**.
+2.  **Data Collection**: The **Telegraf** and **Home Assistant Interface** components subscribe to the device-level event broker.
+3.  **Data Ingestion**:
+    *   **Telegraf** sends the collected time-series data directly to the **Databases (InfluxDB)**.
+    *   The **Home Assistant Interface** forwards device data to the central **Event Broker** within the Building Intelligence layer.
+4.  **Data Processing**: The **Data Engine** subscribes to the central event broker, processes the incoming data, performs forecasting and learning, and stores the results and raw data in the **Databases (InfluxDB and Redis)**.
+5.  **API Exposure**: The **Core API** provides a RESTful interface to the data stored in the databases, making it available to the **Grid Services**.
 
-3.  **Optimization and Scheduling**: Based on the forecasts, user preferences, and grid signals, the system's optimization algorithms create optimal schedules for the operation of controllable devices like HVAC systems, water heaters, electric vehicle chargers, and battery storage systems.
+### Control Flow (Northbound to Southbound)
 
-4.  **Control and Actuation**: The schedules are then executed by the `core-api` and `ha-device-interface`, which send control signals to the respective devices, adjusting their operation to achieve the desired energy profile.
+1.  **Optimization**: The **Grid Services** retrieve data from the **Core API**, execute their optimization algorithms (e.g., MPC, CLPU), and generate control signals.
+2.  **Command Transmission**: These control signals are sent back to the **Core API**.
+3.  **Internal Routing**: The **Core API** publishes the control commands to the central **Event Broker**.
+4.  **Device Actuation**: The **Home Assistant Interface** subscribes to these commands from the event broker and sends them to the appropriate **Smart Devices** through the device-level event broker and communication protocols.
 
-5.  **User Interaction**: Throughout this process, users can monitor the system's performance, override schedules, and set their own preferences through the `frontend` application.
+### User Interaction
+
+-   The **Frontend**, through the **Grid Services API**, allows users to view data, monitor device status, and set preferences. These preferences are saved via the **Initializer** and can be accessed by the **Grid Services** through the **Core API** to tailor the control logic to the user's needs.
 
 ## Getting Started
 
