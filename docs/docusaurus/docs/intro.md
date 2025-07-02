@@ -2,28 +2,57 @@
 sidebar_position: 1
 ---
 
-# Introduction to Building Intelligence
+# Building Intelligence
+
+[![License](https://img.shields.io/badge/License-LiLiQ_P-blue.svg)](https://github.com/hq-opensource/building-intelligence/blob/main/LICENSE.md)
+[![Contributing](https://img.shields.io/badge/Contributing-Guidelines-green.svg)](https://github.com/hq-opensource/building-intelligence/blob/main/CONTRIBUTING.md)
 
 Welcome to the Building Intelligence project! This documentation provides a comprehensive overview of the architecture, components, and functionalities of this innovative platform for smart building energy management.
 
-## Why Building Intelligence?
-
-In an era of increasing energy costs and growing environmental concerns, optimizing energy consumption in buildings has become a critical challenge. The rise of smart devices, electric vehicles, and renewable energy sources presents both an opportunity and a complex management problem. The Building Intelligence project was born out of the need to address these challenges by providing a holistic and intelligent solution for managing energy in modern buildings.
-
-The primary objectives of this project are to:
-
-*   **Optimize Energy Consumption**: Reduce energy waste and lower utility bills by intelligently managing the operation of various devices.
-*   **Enhance Grid Stability**: Enable buildings to become active participants in the electricity grid by providing valuable services like demand response and frequency regulation.
-*   **Promote Sustainability**: Facilitate the integration of renewable energy sources and electric vehicles, contributing to a cleaner and more sustainable energy future.
-*   **Empower Users**: Provide building occupants with greater visibility and control over their energy usage, allowing them to make informed decisions and customize their environment.
-
 ## What is Building Intelligence?
 
-Building Intelligence is a sophisticated, modular, and scalable software ecosystem designed to transform a regular building into a smart, energy-efficient, and grid-interactive entity. It is a collection of microservices that work in concert to monitor, control, and optimize the energy flow within a building.
+![Building Intelligence Diagram](/img/hems.png)
 
-At its core, the platform is built upon a set of powerful components that handle everything from data acquisition to advanced control strategies.
+**Building Intelligence** is an open-source platform designed to simplify the interaction between building devices and third-party applications, empowering developers to create advanced energy management solutions. Building Intelligence focuses specifically on the **building intelligence** layer, making utility-scale complex energy optimization scenarios accessible and manageable.
 
-### Core Packages
+Building Intelligence's core mission is to make it easier for power utilities to develop custom grid services. By handling the ingestion, processing, and storage of data from building actuators, Building Intelligence streamlines development and ensures seamless interaction with both local and cloud-based systems. Additionally, it greatly simplifies the test and development of new grid services to optimize energy efficiency or participate in demand response utility programs.
+
+Building Intelligence acts as a bridge between three different cloud and edge entities:
+- **Utility coordinators:** The utility coordinators are cloud entities that could be deployed in a centralized or distributed manner throughout the grid. The utility coordinators are the ones that activate the grid services.
+- **Building controllers:** The building controllers refer to systems that gather information about their state and allow control.
+- **Grid services:** Third-party applications that enable advanced energy optimization.
+
+## Features
+
+- **Data Management:**  
+  Building Intelligence ingests data from building actuators and stores it in robust databases, including:  
+  - **InfluxDB** for time-series data.  
+  - **Redis** for fast, in-memory storage.  
+
+- **Grid Services Integration:**  
+  Building Intelligence enables the deployment and activation of **grid services**, such as:  
+  - Energy efficiency optimization.  
+  - Dynamic tariff optimization.  
+  - Ancillary services for grid stability.  
+
+- **Northbound Cloud Connectivity:**  
+  Building Intelligence integrates with cloud systems, allowing users and external systems to activate and manage grid services remotely.
+
+- **Southbound Connections:**  
+  Building Intelligence communicates directly with building devices or building control systems, ensuring reliable data ingestion and control.  
+
+- **API for Developers:**  
+  Developers can build and deploy custom grid services using Building Intelligence’s core API, making the development of custom grid services accessible to all.
+
+## Use Cases
+
+- **Energy Efficiency:** Automate the reduction of energy waste in buildings.  
+- **Demand Response:** React dynamically to grid signals to reduce peak demand.  
+- **Dynamic Tariff Optimization:** Adjust energy consumption patterns to benefit from real-time tariff changes.  
+- **Ancillary Services:** Support grid stability with advanced control strategies.  
+- **Many others:** Building Intelligence allows the development of custom grid services by interacting with a simple API. Thus, many other control algorithms could be easily integrated on Building Intelligence.
+
+## Core Packages
 
 The project is organized into several key packages, each with a specific responsibility:
 
@@ -54,5 +83,35 @@ The Building Intelligence platform operates on a continuous loop of data collect
 4.  **Control and Actuation**: The schedules are then executed by the `core-api` and `ha-device-interface`, which send control signals to the respective devices, adjusting their operation to achieve the desired energy profile.
 
 5.  **User Interaction**: Throughout this process, users can monitor the system's performance, override schedules, and set their own preferences through the `frontend` application.
+
+## Getting Started
+
+### Installation
+
+#### Requirements:
+- Python 3.11+
+- Docker (recommended for quick setup)
+- `docker-compose` for orchestrating services.
+
+#### Steps:
+1. Clone the Repository:
+   ```bash
+   git clone https://github.com/hq-opensource/building-intelligence.git
+   ```
+
+2. Setup Configuration:
+
+    Create the required configuration files. Each configuration file contains an example:
+    - **docker.env** : Contains the various environment variables needed by the system.
+    - **devices.yaml** : Contains the devices and their specifications.
+
+3. Start Building Intelligence with Docker Compose:
+    ```bash
+    docker-compose --env-file docker.env up
+    ```
+
+## API Documentation
+Building Intelligence offers a RESTful API to interact with building devices and activate grid services. Once the system is deployed, the API documentation is available at:
+http://localhost:8000/docs (Swagger UI).
 
 By following this documentation, you will gain a deeper understanding of each component and learn how to contribute to this exciting project. Whether you are a developer, a researcher, or simply an enthusiast of smart energy solutions, we welcome you to the Building Intelligence community.

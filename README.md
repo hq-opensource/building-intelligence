@@ -25,7 +25,6 @@ Building Intelligence acts as a bridge between three different cloud and edge en
   Building Intelligence ingests data from building actuators and stores it in robust databases, including:  
   - **InfluxDB** for time-series data.  
   - **Redis** for fast, in-memory storage.  
-  - **GraphDB** for structured relationships between devices and services.
 
 - **Grid Services Integration:**  
   Building Intelligence enables the deployment and activation of **grid services**, such as:  

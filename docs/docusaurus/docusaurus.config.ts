@@ -44,8 +44,8 @@ const config: Config = {
           sidebarPath: './sidebars.ts',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+          // editUrl:
+          //   'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
         },
         blog: {
           showReadingTime: true,
@@ -55,8 +55,8 @@ const config: Config = {
           },
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+          // editUrl:
+          //   'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
           // Useful options to enforce blogging best practices
           onInlineTags: 'warn',
           onInlineAuthors: 'warn',
@@ -85,9 +85,8 @@ const config: Config = {
           position: 'left',
           label: 'Tutorial',
         },
-        {to: '/blog', label: 'Blog', position: 'left'},
         {
-          href: 'https://github.com/facebook/docusaurus',
+          href: 'https://github.com/hq-opensource/building-intelligence',
           label: 'GitHub',
           position: 'right',
         },
@@ -106,19 +105,23 @@ const config: Config = {
           ],
         },
         {
-          title: 'Community',
+          title: 'Developers',
           items: [
             {
-              label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/docusaurus',
+              label: 'Juan Oviedo',
+              href: 'https://www.linkedin.com/in/jcoc/',
             },
             {
-              label: 'Discord',
-              href: 'https://discordapp.com/invite/docusaurus',
+              label: 'Jean-François Alix',
+              href: 'https://www.linkedin.com/in/jean-fran%C3%A7ois-alix-b08b5a/',
             },
             {
-              label: 'X',
-              href: 'https://x.com/docusaurus',
+              label: 'Jonathan Hamelin',
+              href: 'https://www.linkedin.com/in/jonathanhamelin/',
+            },
+            {
+              label: 'Luis Rueda',
+              href: 'https://www.linkedin.com/in/luis-rueda-a5b79560/',
             },
           ],
         },
@@ -126,12 +129,8 @@ const config: Config = {
           title: 'More',
           items: [
             {
-              label: 'Blog',
-              to: '/blog',
-            },
-            {
               label: 'GitHub',
-              href: 'https://github.com/facebook/docusaurus',
+              href: 'https://github.com/hq-opensource/building-intelligence',
             },
           ],
         },
