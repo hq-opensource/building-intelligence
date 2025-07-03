@@ -18,14 +18,15 @@ const config: Config = {
   url: 'https://hq-opensource.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/',
+  baseUrl: '/building-intelligence/',
   // baseUrl: '/', // Use this for local development
-
-  // GitHub pages deployment config.
-  // If you aren't using GitHub pages, you don't need these.
+ 
+   // GitHub pages deployment config.
+   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'hq-opensource', // Usually your GitHub org/user name.
   projectName: 'building-intelligence', // Usually your repo name.
-
+  trailingSlash: false,
+ 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
 
