@@ -1,3 +1,10 @@
+"""
+This module handles RPC (Remote Procedure Call) answers related to forecaster requests.
+It subscribes to forecast request topics, processes incoming requests,
+and provides cached or newly computed forecasts for non-controllable loads.
+It integrates with InfluxDB for data retrieval and Redis for caching and message brokering.
+"""
+
 import os
 
 from datetime import datetime
@@ -47,7 +54,24 @@ async def non_controllable_loads_forecast_request(
     forecast_confirmation_request: Dict,
     broker: Any = Context(),  # noqa: B008
 ) -> Dict[str, Any]:
-    """Handles the forecast request and sends confirmation upon completion."""
+    """
+    Handles incoming forecast requests for non-controllable loads.
+
+    This function acts as a subscriber to the `forecast_request_topic`.
+    It first checks if a cached forecast exists that matches the requested parameters.
+    If a valid cached forecast is found, it is returned immediately.
+    Otherwise, it computes a new forecast using the `ForecastRetriever`,
+    caches the result, and then returns it.
+
+    Args:
+        forecast_confirmation_request (Dict): A dictionary containing the forecast request details,
+                                              including a "message" and "params" (start, stop, interval).
+        broker (Any): The FastStream broker context, used for connecting before publishing.
+
+    Returns:
+        Dict[str, Any]: A dictionary containing the forecast results or an error message
+                        if the request message does not match expectations.
+    """
     logger.info("Received forecast request: %s", forecast_confirmation_request)
     # Connect the broker before publishing
     await broker.connect()

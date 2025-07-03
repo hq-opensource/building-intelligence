@@ -1,3 +1,11 @@
+"""
+This module defines the API endpoints for Paid Control within the Grid Services API.
+
+It provides functionalities to send requests for paid setpoints and to
+request paid device control, allowing for incentivized or compensated
+device adjustments.
+"""
+
 from datetime import datetime
 from typing import Any, Dict
 
@@ -24,7 +32,22 @@ PaidControlAPI = APIRouter()
     tags=["Paid Control"],
 )
 async def send_paid_setpoint_message(dynamic_interval: DynamicInterval) -> JSONResponse:
-    """Sends a request for a paid setpoint to all subscribed users."""
+    """
+    Sends a request for a paid setpoint to all subscribed users or devices.
+
+    This endpoint allows for sending a setpoint and duration as part of a
+    "paid control" mechanism. The `dynamic_interval` object specifies the
+    setpoint and duration. An RPC payload is constructed and published to a
+    topic for paid setpoint control.
+
+    Args:
+        dynamic_interval (DynamicInterval): An object containing the setpoint
+                                            and duration for the paid control request.
+
+    Returns:
+        JSONResponse: The result of the publish operation, typically indicating
+                      the success or failure of sending the RPC payload.
+    """
     logger.info(
         "Sending paid request to set a setpoint of %s for %s minutes:",
         dynamic_interval.setpoint,
@@ -52,6 +75,22 @@ async def send_paid_setpoint_message(dynamic_interval: DynamicInterval) -> JSONR
 async def request_paid_device_control(
     setpoint_request: SetpointRequest,
 ) -> JSONResponse:
+    """
+    Requests paid device control by sending a setpoint for a specific device.
+
+    This endpoint is similar to `send_paid_setpoint_message` but allows
+    specifying a particular device type along with the setpoint and duration.
+    An RPC payload is constructed and published to a topic for paid setpoint control.
+
+    Args:
+        setpoint_request (SetpointRequest): An object containing the device type,
+                                            the setpoint value, and the duration
+                                            for which the setpoint should be applied.
+
+    Returns:
+        JSONResponse: The result of the publish operation, typically indicating
+                      the success or failure of sending the RPC payload.
+    """
     logger.info(
         "Sending setpoint of %s for device %s with a duration of %s minutes:",
         setpoint_request.setpoint,

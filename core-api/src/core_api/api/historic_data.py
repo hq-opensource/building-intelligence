@@ -57,6 +57,18 @@ async def request_historical_data(
     ),
     device_id: Annotated[str | None, Query(description="Device ID, if applicable.")] = None,  # noqa: B008
 ) -> JSONResponse:
+    """
+    Get historical data of controllable loads.
+
+    Args:
+        historic_type (HistoricType): The type of data to retrieve.
+        start (datetime): The start timestamp for the historic data.
+        stop (datetime): The stop timestamp for the historic data.
+        device_id (str | None): Device ID, if applicable.
+
+    Returns:
+        JSONResponse: A response containing the historic data.
+    """
     if historic_type == HistoricType.TZ_TEMPERATURE:
         if device_id is None:
             raise HTTPException(

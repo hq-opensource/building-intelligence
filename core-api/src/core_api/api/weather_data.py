@@ -52,8 +52,17 @@ async def request_temperature_forecast(
         example=datetime.now().replace(second=0, microsecond=0).astimezone(),  # noqa: B008
     ),
 ) -> JSONResponse:
-    """Retrieves weather forecast from a cloud InfluxDB database that is mirrored in the local InfluxDB database."""
+    """
+    Get the weather forecast data.
 
+    Args:
+        variable (WeatherForecastType): The type of data to retrieve.
+        start (datetime): The start timestamp for the forecast data.
+        stop (datetime): The stop timestamp for the forecast data.
+
+    Returns:
+        JSONResponse: A response containing the weather forecast data.
+    """
     now = datetime.now().astimezone().replace(second=0, microsecond=0)
 
     # Validate start and stop times
@@ -108,8 +117,17 @@ async def request_weather_historic(
         example=datetime.now().replace(second=0, microsecond=0).astimezone(),  # noqa: B008
     ),
 ) -> JSONResponse:
-    """Retrieves weather historic data from the local InfluxDB database."""
+    """
+    Get the weather historic data.
 
+    Args:
+        variable (WeatherHistoricType): The type of data to retrieve.
+        start (datetime): The start timestamp for the historic data.
+        stop (datetime): The stop timestamp for the historic data.
+
+    Returns:
+        JSONResponse: A response containing the weather historic data.
+    """
     now = datetime.now().astimezone().replace(second=0, microsecond=0)
 
     # Validate start and stop times

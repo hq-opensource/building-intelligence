@@ -24,7 +24,13 @@ class HistoricQueries:
         influx_manager: InfluxManager,
         redis_client: RedisClient,
     ) -> None:
-        """Class to group the influx queries to retrieve historic data."""
+        """
+        Initializes the HistoricQueries class.
+
+        Args:
+            influx_manager (InfluxManager): An instance of the InfluxManager.
+            redis_client (RedisClient): An instance of the RedisClient.
+        """
         self._influx_manager = influx_manager
 
         # Read labels for databases
@@ -37,7 +43,17 @@ class HistoricQueries:
         self._thermal_model = redis_client.safe_read_from_redis("thermal_model")
 
     def load_tz_temperature_historic(self, start: datetime, stop: datetime, entity_id: str) -> pd.DataFrame:
-        """Retrieve space heating internal temperature."""
+        """
+        Retrieves the historic temperature for a given thermal zone.
+
+        Args:
+            start (datetime): The start time of the query.
+            stop (datetime): The end time of the query.
+            entity_id (str): The ID of the thermal zone.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the temperature data.
+        """
         # Load info for the influx query
         bucket = self._labels_influx["sh_temperature"]["bucket"]
         measurement = self._labels_influx["sh_temperature"]["measurement"]
@@ -75,7 +91,17 @@ class HistoricQueries:
         return tz_temperature_historic_dict
 
     def load_tz_setpoint_historic(self, start: datetime, stop: datetime, entity_id: str) -> pd.DataFrame:
-        """Retrieve space heating internal setpoint."""
+        """
+        Retrieves the historic setpoint for a given thermal zone.
+
+        Args:
+            start (datetime): The start time of the query.
+            stop (datetime): The end time of the query.
+            entity_id (str): The ID of the thermal zone.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the setpoint data.
+        """
         # Load info for the influx query
         bucket = self._labels_influx["sh_setpoint"]["bucket"]
         measurement = self._labels_influx["sh_setpoint"]["measurement"]
@@ -113,7 +139,17 @@ class HistoricQueries:
         return tz_setpoint_historic_dict
 
     def load_tz_electric_consumption(self, start: datetime, stop: datetime, entity_id: str) -> pd.DataFrame:
-        """Retrieves the electric consumption of a specific thermal zone."""
+        """
+        Retrieves the electric consumption of a specific thermal zone.
+
+        Args:
+            start (datetime): The start time of the query.
+            stop (datetime): The end time of the query.
+            entity_id (str): The ID of the thermal zone.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the electric consumption data.
+        """
         # Load info for the influx query
         bucket = self._labels_influx["sh_power"]["bucket"]
         measurement = self._labels_influx["sh_power"]["measurement"]
@@ -151,7 +187,16 @@ class HistoricQueries:
         return tz_electric_consumption_dict
 
     def load_vehicle_consumption_historic(self, start: datetime, stop: datetime) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        """Retrieves consumption historic for the electric vehicle."""
+        """
+        Retrieves consumption historic for the electric vehicle.
+
+        Args:
+            start (datetime): The start time of the query.
+            stop (datetime): The end time of the query.
+
+        Returns:
+            Tuple[pd.DataFrame, pd.DataFrame]: A tuple containing the consumption data.
+        """
         # Load info for the influx query
         bucket = self._labels_influx["v1g_net_power"]["bucket"]
         measurement = self._labels_influx["v1g_net_power"]["measurement"]
@@ -188,7 +233,16 @@ class HistoricQueries:
         return ev_consumption_dict
 
     def load_ec_non_controllable_loads_historic(self, start: datetime, stop: datetime) -> pd.DataFrame:
-        """Builds and retrieves the non controllable consumption."""
+        """
+        Builds and retrieves the non-controllable consumption.
+
+        Args:
+            start (datetime): The start time of the query.
+            stop (datetime): The end time of the query.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the non-controllable consumption data.
+        """
         # Build the non controllable loads consumption and save it on influx
         non_controllable_loads = self._compute_non_controllable_consumption(start, stop)
         field_non_controllable_loads = self._labels_influx["not_controllable_loads"]["field"]
@@ -209,7 +263,16 @@ class HistoricQueries:
     # TODO: JUAN: This should be moved to the data engine! An RPC call should call the service for non controllable loads
 
     def _compute_non_controllable_consumption(self, start: datetime, stop: datetime) -> pd.DataFrame:
-        """This method computes the non controllable loads."""
+        """
+        This method computes the non-controllable loads.
+
+        Args:
+            start (datetime): The start time of the query.
+            stop (datetime): The end time of the query.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the non-controllable consumption data.
+        """
         # region to load values
         # Retrieve total power consumption
         bucket = self._labels_influx["net_power"]["bucket"]
@@ -328,6 +391,17 @@ class HistoricQueries:
     def _resample_accumulated_consumption(
         self, start: datetime, stop: datetime
     ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+        """
+        Resamples the accumulated consumption data.
+
+        Args:
+            start (datetime): The start time of the query.
+            stop (datetime): The end time of the query.
+
+        Returns:
+            Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: A tuple containing the resampled total consumption,
+                                                            non-controllable loads, and thermostat consumption.
+        """
         # region to retrieve the total resampled energy consumption
         total_consumption_query = self._influx_manager.read_accumulated_value(
             start=start,
@@ -413,6 +487,14 @@ class HistoricQueries:
         resampled_non_controllable_loads: pd.DataFrame,
         resampled_consumption_thermostats: pd.DataFrame,
     ) -> None:
+        """
+        Saves the real consumption data to InfluxDB.
+
+        Args:
+            resampled_total_consumption (pd.DataFrame): The resampled total consumption data.
+            resampled_non_controllable_loads (pd.DataFrame): The resampled non-controllable loads data.
+            resampled_consumption_thermostats (pd.DataFrame): The resampled thermostat consumption data.
+        """
         # Save the resampled total consumption
         self._influx_manager.synchronous_write(
             bucket=self._labels_influx["bucket_user_data"],

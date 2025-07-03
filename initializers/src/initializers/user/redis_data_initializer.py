@@ -1,3 +1,12 @@
+"""
+This module defines the `RedisDataInitializer` class, which is responsible for
+initializing and uploading various user-specific data profiles to Redis.
+
+It plays a crucial role in setting up the initial state of the system by
+populating Redis with necessary data for different device types and user preferences,
+utilizing `ProfileGenerators` for data creation and `DeviceHelper` for device-specific logic.
+"""
+
 from typing import List
 
 import numpy as np
@@ -13,7 +22,12 @@ logger = LoggingUtil.get_logger(__name__)
 
 class RedisDataInitializer:
     """
-    Initialize the data required in redis to operate the user.
+    Manages the initialization and upload of various user-specific data profiles to Redis.
+
+    This class is responsible for populating Redis with default or generated data
+    for different device types and user preferences, which are essential for
+    the system's operation. It leverages `ProfileGenerators` for data creation
+    and `DeviceHelper` for device-specific logic.
     """
 
     _redis_client: RedisClient
@@ -22,6 +36,12 @@ class RedisDataInitializer:
         self,
         redis_client: RedisClient,
     ):
+        """
+        Initializes the RedisDataInitializer with a Redis client.
+
+        Args:
+            redis_client (RedisClient): An instance of RedisClient for interacting with Redis.
+        """
         # Create self parameters
         self._redis_client = redis_client
 
@@ -36,7 +56,14 @@ class RedisDataInitializer:
     def initialize(
         self,
     ) -> None:
-        """Method to build the profiles required to initialize the system the first time."""
+        """
+        Orchestrates the upload of all required data profiles to Redis.
+
+        This method retrieves user devices and then calls various private helper
+        methods to upload thermal preferences, thermostat setpoints, electric storage
+        preferences, EV (V1G and V2G) preferences, power limits, water heater
+        preferences, trading preferences, and non-controllable loads.
+        """
 
         # Retrieve devices from the redis database
         devices = self._redis_client.safe_read_from_redis("user_devices")
@@ -52,7 +79,15 @@ class RedisDataInitializer:
         self._upload_non_controlable_loads_default_to_redis()
 
     def _upload_thermal_preferences_to_redis(self, devices: List) -> None:
-        """Upload default thermal preferences to redis."""
+        """
+        Uploads default thermal preferences for space heating devices to Redis.
+
+        If space heating devices are present, this method generates random daily
+        profiles for occupation preferences and saves them to Redis.
+
+        Args:
+            devices (List): A list of device dictionaries.
+        """
         if DeviceHelper.has_device_type(devices, DeviceType.SPACE_HEATING):
             logger.info("Saving occupation preferences on RedisDB...")
 
@@ -71,6 +106,15 @@ class RedisDataInitializer:
             self._redis_client.save_in_redis(self._labels_redis["occupation"], info_to_save)
 
     def _upload_thermostat_setpoints_to_redis(self, devices: List) -> None:
+        """
+        Uploads default thermostat setpoints for space heating devices to Redis.
+
+        If space heating devices are present, this method generates random integer
+        profiles for thermostat setpoints (between 18 and 22) and saves them to Redis.
+
+        Args:
+            devices (List): A list of device dictionaries.
+        """
         if DeviceHelper.has_device_type(devices, DeviceType.SPACE_HEATING):
             logger.info("Saving thermostat preferences on RedisDB...")
 
@@ -86,6 +130,16 @@ class RedisDataInitializer:
             self._redis_client.save_in_redis(self._labels_redis["thermostat_setpoints"], info_to_save)
 
     def _upload_electric_storage_preferences_to_redis(self, devices: List) -> None:
+        """
+        Uploads electric storage preferences (desired SoC and charge preferences) to Redis.
+
+        If electric storage devices are present, this method generates continuous random
+        profiles for desired State of Charge (SoC) and charge preferences, based on
+        the device's critical state, and saves them to Redis.
+
+        Args:
+            devices (List): A list of device dictionaries.
+        """
         if DeviceHelper.has_device_type(devices, DeviceType.ELECTRIC_STORAGE):
             logger.info("Saving electric storage preferences on RedisDB...")
 
@@ -103,6 +157,15 @@ class RedisDataInitializer:
             self._redis_client.save_in_redis(self._labels_redis["es_charge_preferences"], info_to_save)
 
     def _upload_v1g_preferences_to_redis(self, devices: List) -> None:
+        """
+        Uploads V1G (Electric Vehicle V1G) preferences to Redis.
+
+        If V1G devices are present, this method generates random profiles for
+        V1G branched status, desired SoC, and consumption, then saves them to Redis.
+
+        Args:
+            devices (List): A list of device dictionaries.
+        """
         if DeviceHelper.has_device_type(devices, DeviceType.ELECTRIC_VEHICLE_V1G):
             logger.info("Saving V1G preferences on RedisDB...")
             # Extract information of the minimin soc from the information that arrived from redis
@@ -123,6 +186,15 @@ class RedisDataInitializer:
             self._redis_client.save_in_redis(self._labels_redis["v1g_consumption"], info_to_save)
 
     def _upload_v2g_preferences_to_redis(self, devices: List) -> None:
+        """
+        Uploads V2G (Electric Vehicle V2G) preferences to Redis.
+
+        If V2G devices are present, this method generates random profiles for
+        V2G branched status, desired SoC, and consumption, then saves them to Redis.
+
+        Args:
+            devices (List): A list of device dictionaries.
+        """
         if DeviceHelper.has_device_type(devices, DeviceType.ELECTRIC_VEHICLE_V2G):
             logger.info("Saving thermostat setpoints on RedisDB...")
             # Extract information of the minimin soc from the information that arrived from redis
@@ -144,6 +216,12 @@ class RedisDataInitializer:
             self._redis_client.save_in_redis(self._labels_redis["v2g_consumption"], info_to_save)
 
     def _upload_power_limit_to_redis(self) -> None:
+        """
+        Uploads a default power limit profile to Redis.
+
+        This method generates a power limit profile using `default_power_limit`
+        from `ProfileGenerators` and saves it to Redis under the "power_limit" key.
+        """
         logger.info("Saving power limit on RedisDB...")
 
         # Create the info to save
@@ -158,6 +236,12 @@ class RedisDataInitializer:
         self._redis_client.save_in_redis(self._labels_redis["power_limit"], info_to_save)
 
     def _upload_water_heater_preferences_to_redis(self) -> None:
+        """
+        Uploads water heater preferences (state) to Redis.
+
+        This method generates a random integer profile for the water heater state
+        (0 or 1) and saves it to Redis.
+        """
         logger.info("Saving water heater preferences on RedisDB...")
 
         # Save on redisDB
@@ -165,6 +249,12 @@ class RedisDataInitializer:
         self._redis_client.save_in_redis(self._labels_redis["wh_state"], info_to_save)
 
     def _upload_trading_preferences_to_redis(self) -> None:
+        """
+        Uploads trading preferences to Redis.
+
+        This method generates a random continuous profile for trading preferences
+        (between 0 and 1) and saves it to Redis.
+        """
         logger.info("Saving trading preferences on RedisDB...")
 
         # Save on redisDB
@@ -172,6 +262,12 @@ class RedisDataInitializer:
         self._redis_client.save_in_redis(self._labels_redis["trading_preferences"], info_to_save)
 
     def _upload_non_controlable_loads_default_to_redis(self) -> None:
+        """
+        Uploads a default profile for non-controllable loads to Redis.
+
+        This method generates random normal data for non-controllable loads
+        based on a random mean and standard deviation, and saves it to Redis.
+        """
         # Create a random number generator
         rng = np.random.default_rng()
 

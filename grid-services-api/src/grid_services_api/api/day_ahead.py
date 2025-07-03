@@ -1,3 +1,10 @@
+"""
+This module defines the API endpoints for Day Ahead Coordination within the Grid Services API.
+
+It provides functionalities to initiate day-ahead coordination processes and
+retrieve the optimization status from the Model Predictive Control (MPC) system.
+"""
+
 from datetime import datetime
 from typing import Any, Dict
 
@@ -23,7 +30,19 @@ HORIZON = 144
     tags=["Day Ahead Coordination"],
 )
 async def execute_day_ahead_coodination() -> JSONResponse:
-    """Starts the coordination grid function."""
+    """
+    Initiates the Day Ahead Coordination grid function.
+
+    This endpoint triggers the day-ahead coordination process, which involves
+    calculating prices and preparing an RPC payload for the MPC (Model Predictive Control)
+    system. The payload includes the current iteration, a list of prices, and the
+    current timestamp. This message is then published to a predefined topic
+    for the grid functions.
+
+    Returns:
+        JSONResponse: The result of the publish operation, typically indicating
+                      the success or failure of sending the RPC payload.
+    """
     # Create a log
     logger.info("Executing the Day Ahead Coordination.")
     price_list = [0.07] * HORIZON
@@ -47,7 +66,18 @@ async def execute_day_ahead_coodination() -> JSONResponse:
     tags=["Day Ahead Coordination"],
 )
 async def request_optimization_status() -> JSONResponse:
-    """Retrieves the optimization status."""
+    """
+    Retrieves the current optimization status from the MPC system.
+
+    This endpoint constructs an RPC payload to request the optimization status
+    and publishes it to a predefined topic for grid functions. The response
+    from the MPC system will contain details about the ongoing or last completed
+    optimization process.
+
+    Returns:
+        JSONResponse: The result of the publish operation, typically indicating
+                      the success or failure of sending the RPC payload.
+    """
 
     # Create a log
     logger.info("Retrieving optimization status.")

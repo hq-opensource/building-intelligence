@@ -47,6 +47,17 @@ async def request_forecast_data(
         example=datetime.now().replace(second=0, microsecond=0).astimezone(),  # noqa: B008
     ),
 ) -> JSONResponse:
+    """
+    Get forecasts of the non controllable loads.
+
+    Args:
+        forecast_type (ForecastType): The type of data to retrieve.
+        start (datetime): The start timestamp for the forecast data.
+        stop (datetime): The stop timestamp for the forecast data.
+
+    Returns:
+        JSONResponse: A response containing the forecast data.
+    """
     if forecast_type == ForecastType.NON_CONTROLLABLE_LOADS:
         retrieved_data = await forecast_queries.load_ec_non_controllable_loads_forecast(start, stop)
     else:

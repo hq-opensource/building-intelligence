@@ -49,6 +49,15 @@ async def get_building_consumption(
         ge=10,  # Ensure duration is at least 10 seconds
     ),
 ) -> JSONResponse:
+    """
+    Get the total consumption of the building.
+
+    Args:
+        duration (int): Duration in seconds to compute the average consumption.
+
+    Returns:
+        JSONResponse: A response containing the total consumption.
+    """
     # Check if duration is an integer
     if not isinstance(duration, int):
         raise HTTPException(
@@ -95,7 +104,10 @@ async def get_building_consumption(
 )
 async def get_grap_values() -> JSONResponse:
     """
-    Retrieves the 'grap_state' and 'grap_limit' values from Redis and returns them in a dictionary.
+    Get the GRAP values (state and limit).
+
+    Returns:
+        JSONResponse: A response containing the GRAP state and limit.
     """
     try:
         # Read 'grap_state' and 'grap_limit' from Redis

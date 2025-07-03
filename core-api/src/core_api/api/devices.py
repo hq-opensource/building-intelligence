@@ -54,7 +54,16 @@ async def set_device_id_setpoint(
     device_id: str = Path(description="ID of the device."),
     setpoint: float = Query(description="The desired setpoint."),
 ) -> JSONResponse:
-    """Write the setpoint of a device using its ID."""
+    """
+    Adjust the setpoint of a device using its ID.
+
+    Args:
+        device_id (str): ID of the device.
+        setpoint (float): The desired setpoint.
+
+    Returns:
+        JSONResponse: A response indicating that the setpoint was successfully applied.
+    """
     logger.info(f"Received set device setpoint API request. Device ID: {device_id} Setpoint: {setpoint}")
     if not realtime_data.has_device(device_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Device {device_id} not found.")
@@ -103,6 +112,17 @@ async def set_device_dispatches_schedule(
         ],
     ),
 ) -> JSONResponse:
+    """
+    Schedule the dispatch of a lists of devices as timeseries.
+
+    Args:
+        priority (int): Priority level applied to all dispatches in this request.
+        dispatches (Dict[str, Dict[datetime, float]]): A dictionary where keys are device IDs and values are
+                                                      dictionaries of datetime and setpoint pairs.
+
+    Returns:
+        JSONResponse: A response indicating that the schedule was saved successfully.
+    """
     # Validate priority
     if not (0 <= priority <= 100):
         raise HTTPException(
@@ -110,7 +130,6 @@ async def set_device_dispatches_schedule(
             detail=f"Invalid priority value: {priority}. Priority must be between 0 and 100 inclusive.",
         )
 
-    """Write the setpoint of a device using its ID."""
     logger.debug("Received dispatches schedule API request with priority %s for devices: %s", priority, dispatches)
 
     DeviceScheduler.save_schedule(priority, dispatches, redis_client, influx_manager)
@@ -126,7 +145,12 @@ async def set_device_dispatches_schedule(
     summary="Get the list of devices.",
 )
 async def get_devices() -> JSONResponse:
-    """Redirects an external API call to the internal learners service using the event broker."""
+    """
+    Get the list of devices.
+
+    Returns:
+        JSONResponse: A response containing the list of devices.
+    """
     try:
         # Read from redis the devices
         logger.debug("Retrieving list of devices from RedisDB.")
@@ -155,6 +179,16 @@ async def get_device_state(
     device_id: str = Path(description="ID of the device."),
     field: str | None = Query(default=None, description="Optional field of the state to read."),
 ) -> float:
+    """
+    Get the state of a device.
+
+    Args:
+        device_id (str): ID of the device.
+        field (str | None): Optional field of the state to read.
+
+    Returns:
+        float: The state of the device.
+    """
     if not realtime_data.has_device(device_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Device {device_id} not found.")
 

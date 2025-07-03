@@ -1,3 +1,11 @@
+"""
+This module defines the DeviceHelper Enum, which categorizes various device types.
+
+It also provides static utility methods for querying and manipulating lists of device data,
+such as checking for device existence, counting devices by type, and extracting specific
+values based on filtering criteria.
+"""
+
 from enum import Enum
 from typing import List
 
@@ -20,22 +28,28 @@ class DeviceHelper(Enum):
     @staticmethod
     def device_exists(devices: List, device_id: str) -> bool:
         """
-        Check if a device of the specified type exists in the list.
+        Checks if a device with the specified entity ID exists within a list of device dictionaries.
 
-        :param devices: List of dictionaries representing devices.
-        :param device_id: The ID of device to search for.
-        :return: True if a device of the given ID exists, False otherwise.
+        Args:
+            devices (List): A list of dictionaries, where each dictionary represents a device.
+            device_id (str): The entity ID of the device to search for.
+
+        Returns:
+            bool: True if a device with the given `device_id` is found, False otherwise.
         """
         return any(device.get("entity_id") == device_id for device in devices)
 
     @staticmethod
     def count_devices_by_type(device_list: List, device_type: str) -> int:
         """
-        Count the number of devices of the specified type in the list.
+        Counts the number of devices of a specific type within a list of device dictionaries.
 
-        :param device_list: List of dictionaries representing devices.
-        :param device_type: The type of device to count.
-        :return: The number of devices of the given type.
+        Args:
+            device_list (List): A list of dictionaries, where each dictionary represents a device.
+            device_type (str): The type of device to count (e.g., "space_heating").
+
+        Returns:
+            int: The total number of devices that match the specified `device_type`.
         """
         return sum(device.get("type") == device_type for device in device_list)
 
@@ -44,14 +58,19 @@ class DeviceHelper(Enum):
         device_list: list, filter_key: str, filter_value: str, target_key: str
     ) -> List[str]:
         """
-        Get all the values of the 'target_key' from the list of devices that have a 'filter_key'
-        with the specified 'filter_value'.
+        Extracts values of a `target_key` from devices in a list that match a specific `filter_key` and `filter_value`.
 
-        :param device_list: List of dictionaries representing devices.
-        :param filter_key: The key to filter devices (e.g., 'type').
-        :param filter_value: The value that the 'filter_key' should have (e.g., 'space_heating').
-        :param target_key: The key whose values will be extracted (e.g., 'entity_id').
-        :return: A list of all 'target_key' values where 'filter_key' matches 'filter_value'.
+        This method iterates through a list of device dictionaries and returns a list of values
+        corresponding to the `target_key` for all devices that satisfy the filtering criteria.
+
+        Args:
+            device_list (list): A list of dictionaries, where each dictionary represents a device.
+            filter_key (str): The key to use for filtering devices (e.g., "type").
+            filter_value (str): The value that `filter_key` must match for a device to be included.
+            target_key (str): The key whose values are to be extracted from the filtered devices (e.g., "entity_id").
+
+        Returns:
+            List[str]: A list of extracted `target_key` values from the filtered devices.
         """
         return [
             device.get(target_key)

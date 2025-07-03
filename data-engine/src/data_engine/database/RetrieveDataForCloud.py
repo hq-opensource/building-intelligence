@@ -1,3 +1,10 @@
+"""
+This module provides the RetrieveDataForCloud class, which is responsible for
+retrieving and organizing various types of data from InfluxDB.
+It focuses on fetching real-time measurements and preparing them for cloud consumption,
+including handling data gaps and structuring the output for telemetry.
+"""
+
 import os
 
 from time import time
@@ -10,11 +17,32 @@ from influxdb_client import InfluxDBClient
 
 
 class RetrieveDataForCloud:
+    """
+    A class to retrieve and organize data from InfluxDB for cloud consumption.
+    """
+
     def __init__(self, influx_client: InfluxDBClient) -> None:
+        """
+        Initializes the RetrieveDataForCloud with an InfluxDB client.
+
+        Args:
+            influx_client (InfluxDBClient): An initialized InfluxDB client instance.
+        """
         self._influx_client = influx_client
 
     def retrieve_all_data(self, start_range: int = -30) -> Dict[str, Any]:
-        """Retrieve all data and organize it into a nested dictionary."""
+        """
+        Retrieves all relevant data from InfluxDB and organizes it into a nested dictionary
+        suitable for cloud telemetry.
+
+        Args:
+            start_range (int): The time range in seconds from the current time to query data.
+                                Defaults to -30 seconds.
+
+        Returns:
+            Dict[str, Any]: A dictionary containing telemetry data, including timestamps,
+                            values from measurements, and geographical coordinates.
+        """
 
         # Retrieve all the data
         all_dataframes = self._retrieve_all_dataframes(start_range)
@@ -41,7 +69,17 @@ class RetrieveDataForCloud:
         return telemetry
 
     def _retrieve_all_dataframes(self, start_range: int = -30) -> Dict[str, pd.DataFrame]:
-        """Fetch last data points for all 'real' measurements in all buckets."""
+        """
+        Fetches the last data points for all measurements containing 'real' in their name
+        across all available InfluxDB buckets.
+
+        Args:
+            start_range (int): The time range in seconds from the current time to query data.
+
+        Returns:
+            Dict[str, pd.DataFrame]: A dictionary where keys are measurement names and values
+                                     are pandas DataFrames containing the last data points.
+        """
         all_dataframes = {}
         buckets = self._get_all_buckets()
 
@@ -61,7 +99,23 @@ class RetrieveDataForCloud:
     def _read_last_data_point_seconds(
         self, bucket: str, measurement: str, fields: list, tags: dict = {}, start_range: int = -30
     ) -> pd.DataFrame:
-        """Reads the last data point from InfluxDB within the specified time range in seconds."""
+        """
+        Reads the last data point for specified fields and tags from InfluxDB within a given
+        time range in seconds.
+
+        Args:
+            bucket (str): The name of the InfluxDB bucket to query.
+            measurement (str): The name of the measurement to query.
+            fields (list): A list of field names to retrieve.
+            tags (dict): A dictionary of tags to filter the data (e.g., {"tag_key": "tag_value"}).
+                         Defaults to an empty dictionary.
+            start_range (int): The time range in seconds from the current time to query data.
+                               Defaults to -30 seconds.
+
+        Returns:
+            pd.DataFrame: A pandas DataFrame containing the last data point, or an empty DataFrame
+                          if no data is found or no matching fields exist.
+        """
 
         # Create the fields list for the query
         fields_list = " or ".join([f'r["_field"] == "{field}"' for field in fields])
@@ -103,14 +157,27 @@ class RetrieveDataForCloud:
             return resulting_df
 
     def _get_all_buckets(self) -> List[str]:
-        """Retrieve all bucket names."""
+        """
+        Retrieves a list of all available bucket names in InfluxDB.
+
+        Returns:
+            List[str]: A list of bucket names.
+        """
         buckets_api = self._influx_client.buckets_api()
         buckets = buckets_api.find_buckets().buckets
         all_buckets = [bucket.name for bucket in buckets]
         return all_buckets
 
     def _get_measurements_with_real(self, bucket: str) -> List[str]:
-        """Retrieve all measurements containing the word 'real' from a bucket."""
+        """
+        Retrieves all measurement names from a specified bucket that contain the substring 'real'.
+
+        Args:
+            bucket (str): The name of the InfluxDB bucket to query.
+
+        Returns:
+            List[str]: A list of measurement names containing 'real'.
+        """
         query = f"""
         import "influxdata/influxdb/schema"
         schema.measurements(bucket: "{bucket}")
@@ -122,7 +189,17 @@ class RetrieveDataForCloud:
         return measurements_with_real
 
     def _get_fields_for_measurement(self, bucket: str, measurement: str) -> List[str]:
-        """Retrieve all fields for a specific measurement."""
+        """
+        Retrieves all field keys for a specific measurement within a given bucket.
+
+        Args:
+            bucket (str): The name of the InfluxDB bucket.
+            measurement (str): The name of the measurement.
+
+        Returns:
+            List[str]: A list of field names for the specified measurement, or an empty list
+                       if no fields are found.
+        """
         query = f"""
         import "influxdata/influxdb/schema"
         schema.measurementFieldKeys(

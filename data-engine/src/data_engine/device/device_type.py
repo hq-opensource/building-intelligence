@@ -1,3 +1,9 @@
+"""
+This module defines the DeviceType enumeration, which categorizes various types of
+devices managed within the system. Each device instance is associated with one of
+these predefined types, ensuring consistent classification and handling across the application.
+"""
+
 from enum import Enum
 
 
