@@ -6,7 +6,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'Building Intelligence',
-  tagline: 'Dinosaurs are cool',
+  tagline: 'An open-source platform for developing and testing grid services for smart homes.',
   favicon: 'img/favicon.ico',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -137,7 +137,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+      copyright: `Last update: ${new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' })}`,
     },
     prism: {
       theme: prismThemes.github,

@@ -20,7 +20,10 @@ Building Intelligence's core mission is to make it easier for power utilities to
 ![Building Intelligence Diagram](/img/hems.png)
 
 
-The architecture of the Building Intelligence platform is modular, consisting of three primary layers: **Smart Devices**, **Building Intelligence**, and **Grid Services**. This design separates the device-level communication, data management, and high-level control logic, creating a flexible and scalable system.
+The architecture of the Building Intelligence platform is modular, consisting of three primary layers: **Smart Devices**, **Building Intelligence**, and **Grid Services**. This design separates the device-level communication, data management, and high-level control logic, creating a flexible and scalable system. This code repository contains the codes of the red box, the Building Intelligence. The grid services will be hosted on the following github repositories: 
+- [**Predictive Control**](https://github.com/hq-opensource/predictive-control) 
+
+The rest of grid services on the roadmap will be published here as soon as they are released.
 
 ### Smart Devices
 
