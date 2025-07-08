@@ -17,6 +17,13 @@ Building Intelligence acts as a bridge between three different cloud and edge en
 - **Building controllers:** The buiding controllers refer to systems that . The building actuators gather information about their state and allow 
 - **Grid services:** Third-party applications that enable advanced energy optimization.
 
+## System Architecture
+![Building Intelligence Diagram](docs/docusaurus/static/img/hems.png)
+
+The architecture of the Building Intelligence platform is modular, consisting of three primary layers: **Smart Devices**, **Building Intelligence**, and **Grid Services**. This design separates the device-level communication, data management, and high-level control logic, creating a flexible and scalable system. This code repository contains the codes of the red box, the Building Intelligence. The grid services will be hosted on the following github repositories: 
+- [**Predictive Control Github**](https://github.com/hq-opensource/predictive-control) 
+- [**Predictive Control Documentation**](https://hq-opensource.github.io/predictive-control/) 
+
 ---
 
 ## 🚀 **Features**
