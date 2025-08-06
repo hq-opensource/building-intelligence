@@ -8,10 +8,10 @@
   model: Calypso smart water heater controller (RM3500ZB)
   priority: 1
   tank_volume: 270  # default: 270 L
-  min_temperature: 30  # default: 30°C
-  max_temperature: 90  # default: 90°C
-  inlet_temperature: 16  # default: 16°C
-  water_heater_constat: 1.1638 # Wh/°C/Litre
+  min_temperature: 30  # default: 30C
+  max_temperature: 90  # default: 90C
+  inlet_temperature: 16  # default: 16C
+  water_heater_constat: 1.1638 # Wh/C/Litre
   critical_state: 40.0
   desired_state: 80.0
   power_capacity: 4.5
@@ -911,3 +911,12 @@
           data: 1
         - time: "06:00"
           data: 0
+- friendly_name: Photovoltaic Panels
+  entity_id: roftop_photovoltaic_panels
+  group: low
+  type: photovoltaic_generator
+  description: PV installed on the rooftop of the house.
+  pv_module: Canadian_Solar_Inc__CS6k_280M
+  inverter: Schneider_Electric_Solar_Inc___XW_Pro_6848_NA__240V_
+  modules_per_string: 8
+  strings_per_inverter: 2
