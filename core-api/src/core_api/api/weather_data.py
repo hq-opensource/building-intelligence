@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from common.database.influxdb import InfluxManager
 from common.database.redis import RedisClient
 from common.util.logging import LoggingUtil
-from core_api.api.models import WeatherForecastType, WeatherHistoricType
+from core_api.api.models import SolarForecastType, WeatherForecastType, WeatherHistoricType
 from core_api.database.weather_queries import WeatherQueries
 
 
@@ -36,6 +36,76 @@ weather_queries = WeatherQueries(influx_manager, redis_client)
 
 
 @WeathertAPI.get(
+    "/solar/forecast/{variable}",
+    tags=["Data management"],
+    operation_id="solar_forecast",
+    summary="Get the solar irradiation forecast data.",
+)
+async def request_solar_forecast(
+    variable: SolarForecastType = Path(description="The type of solar data to retrieve."),  # noqa: B008
+    start: datetime = Query(  # noqa: B008
+        description="The ISO 8601 formatted start timestamp for the forecast.",
+        example=(datetime.now() + timedelta(minutes=10)).replace(second=0, microsecond=0).astimezone(),  # noqa: B008
+    ),  # noqa: B008
+    stop: datetime = Query(  # noqa: B008
+        description="The ISO 8601 formatted stop timestamp for the forecast.",
+        example=(datetime.now() + timedelta(hours=24)).replace(second=0, microsecond=0).astimezone(),  # noqa: B008
+    ),  # noqa: B008
+) -> JSONResponse:
+    """
+    Get the solar irradiation forecast data for a specific variable (GHI, DNI, DHI).
+
+    Args:
+        variable (SolarForecastType): The type of data to retrieve (e.g., clear_sky_ghi).
+        start (datetime): The start timestamp for the forecast data.
+        stop (datetime): The stop timestamp for the forecast data.
+
+    Returns:
+        JSONResponse: A response containing the solar forecast data as a timestamp-value map.
+    """
+    now = datetime.now().astimezone().replace(second=0, microsecond=0)
+
+    # --- Validation for start and stop times ---
+    if start < now or stop < now:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Start and stop times must be in the future (now: {now})",
+        )
+    if start >= stop:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Start time {start} must be before stop time {stop}",
+        )
+
+    # The solar forecast is available for the next 48 hours
+    max_future = now + timedelta(hours=48)
+    if stop > max_future:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Stop time {stop} cannot be more than 48 hours into the future (max: {max_future})",
+        )
+
+    try:
+        # Call the new function in WeatherQueries
+        solar_data = weather_queries.retrieve_solar_forecast(start, stop, variable)
+        logger.debug("Solar forecast data retrieved successfully.")
+    except ValueError as ve:
+        # Handle specific validation errors from the query function
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(ve),
+        )
+    except Exception as e:
+        logger.error("An unexpected error occurred while retrieving solar data: %s", e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error retrieving solar forecast data: {e}",
+        ) from e
+
+    return JSONResponse(content=solar_data)
+
+
+@WeathertAPI.get(
     "/weather/forecast/{variable}",
     tags=["Data management"],
     operation_id="weather_forecast",
@@ -45,7 +115,7 @@ async def request_temperature_forecast(
     variable: WeatherForecastType = Path(description="The type of data to retrieve."),  # noqa: B008
     start: datetime = Query(  # noqa: B008
         description="The ISO 8601 formatted start timestamp.",
-        example=datetime.now().replace(second=0, microsecond=0).astimezone(),  # noqa: B008
+        example=(datetime.now() + timedelta(minutes=10)).replace(second=0, microsecond=0).astimezone(),  # noqa: B008
     ),  # noqa: B008
     stop: datetime = Query(  # noqa: B008
         description="The ISO 8601 formatted stop timestamp.",

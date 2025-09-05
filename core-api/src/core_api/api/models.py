@@ -17,6 +17,17 @@ class ForecastType(Enum):
     NON_CONTROLLABLE_LOADS = "non-controllable-loads"
 
 
+class SolarForecastType(str, Enum):
+    """Enumeration for the types of solar forecast data that can be requested."""
+
+    clear_sky_ghi = "clear_sky_ghi"
+    clear_sky_dhi = "clear_sky_dhi"
+    clear_sky_dni = "clear_sky_dni"
+    cloudy_sky_ghi = "cloudy_sky_ghi"
+    cloudy_sky_dhi = "cloudy_sky_dhi"
+    cloudy_sky_dni = "cloudy_sky_dni"
+
+
 class PreferencesType(Enum):
     """Types of preferences."""
 

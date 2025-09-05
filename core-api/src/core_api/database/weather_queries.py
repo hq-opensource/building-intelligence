@@ -11,7 +11,7 @@ from pandas import DataFrame
 from common.database.influxdb import InfluxManager
 from common.database.redis import RedisClient
 from common.util.logging import LoggingUtil
-from core_api.api.models import WeatherForecastType, WeatherHistoricType
+from core_api.api.models import SolarForecastType, WeatherForecastType, WeatherHistoricType
 
 
 logger = LoggingUtil.get_logger(__name__)
@@ -27,6 +27,137 @@ class WeatherQueries:
         self._redis_client = redis_client
         # Read labels for databases
         self._labels_influx = redis_client.safe_read_from_redis("influxdb_mapping")
+        self._solar_variable_mapping = {
+            "clear_sky_ghi": "irradiation_clear_sky_ghi",
+            "clear_sky_dhi": "irradiation_clear_sky_dhi",
+            "clear_sky_dni": "irradiation_clear_sky_dni",
+            "cloudy_sky_ghi": "irradiation_cloudy_sky_ghi",
+            "cloudy_sky_dhi": "irradiation_cloudy_sky_dhi",
+            "cloudy_sky_dni": "irradiation_cloudy_sky_dni",
+        }
+
+    def retrieve_solar_forecast(
+        self, start: datetime, stop: datetime, variable: SolarForecastType, interval: int = 10
+    ) -> Dict[str, Any]:
+        """Retrieves the solar forecast for a specific variable between start and stop times."""
+
+        now = datetime.now().astimezone().replace(second=0, microsecond=0)
+
+        # Validate start and stop times
+        if start < now:
+            message = f"Start time {start} must be in the future (now: {now})"
+            logger.error(message)
+            raise ValueError(message)
+        if stop < now:
+            message = f"Stop time {stop} must be in the future (now: {now})"
+            logger.error(message)
+            raise ValueError(message)
+        if start >= stop:
+            message = f"Start time {start} must be before stop time {stop}"
+            logger.error(message)
+            raise ValueError(message)
+        max_future = now + timedelta(hours=48)
+        if stop > max_future:
+            message = f"Stop time {stop} cannot be more than 48 hours into the future (max: {max_future})"
+            logger.error(message)
+            raise ValueError(message)
+
+        # Get the corresponding InfluxDB field name from the mapping
+        try:
+            field_to_query = self._solar_variable_mapping[variable.value]
+        except KeyError:
+            raise ValueError(f"Invalid solar variable '{variable.value}' provided.")
+
+        bucket = "weather"  # Assuming the solar data is in the 'weather' bucket
+
+        # Build the list of measurements to query (openweather_solar_000 to openweather_solar_047)
+        measurements = [f"openweather_solar_{str(i).zfill(3)}" for i in range(48)]
+
+        # Query InfluxDB for each measurement
+        solar_dfs: List[DataFrame] = []
+        for measurement in measurements:
+            try:
+                df = self._influx_manager.read(
+                    start=now - timedelta(days=2),  # Query a wide range to ensure we get the latest point
+                    stop=now + timedelta(days=2),
+                    msname=measurement,
+                    fields=[field_to_query],
+                    bucket=bucket,
+                )
+                if not df.empty:
+                    # Take only the last row, which is the most recent forecast
+                    solar_dfs.append(df.tail(1))
+            except Exception as e:
+                logger.error("Failed to query measurement %s for solar data: %s", measurement, e)
+
+        if not solar_dfs:
+            logger.warning("No solar forecast data retrieved from InfluxDB.")
+            return {}
+
+        # Combine results into a single DataFrame
+        solar_query = pd.concat(solar_dfs).sort_index()
+        logger.debug("Combined %d DataFrames into a single query result", len(solar_dfs))
+
+        # Perform sampling and interpolation
+        if not solar_query.empty:
+            # Resample data
+            solar = (
+                solar_query.resample(f"{interval}min").mean().interpolate(method="linear", limit_direction="forward")
+            )
+            logger.debug("Resampled data to %d-minute intervals", interval)
+            # Limit reponse to the requested timeframe
+            start_filter = self._round_up_to_10_minutes(start)
+            stop_filter = self._round_up_to_10_minutes(stop)
+
+            # Ensure datetime index and convert filters if necessary
+            logger.debug("Ensuring solar DataFrame has a datetime index...")
+            try:
+                if not isinstance(solar.index, pd.DatetimeIndex):
+                    solar.index = pd.to_datetime(solar.index)
+                    logger.debug("Solar df looks like this: %s", solar.head(3))
+                    logger.debug("Converted solar index to DatetimeIndex.")
+
+                # Align timezones
+                if start_filter.tzinfo is not None and solar.index.tzinfo is None:
+                    logger.debug("Localizing solar index to match filter timezone.")
+                    solar.index = solar.index.tz_localize(start_filter.tzinfo)
+                elif start_filter.tzinfo is not None and solar.index.tzinfo != start_filter.tzinfo:
+                    logger.debug("Converting solar index to match filter timezone.")
+                    solar.index = solar.index.tz_convert(start_filter.tzinfo)
+
+                logger.debug("Start filter (rounded): %s", str(start_filter))
+                logger.debug("Stop filter (rounded): %s", str(stop_filter))
+
+                logger.debug("Filtering rows after or equal to start_filter...")
+                solar_after_start = solar[solar.index >= start_filter]
+                logger.debug("Remaining rows after start_filter: %d", len(solar_after_start))
+
+                logger.debug("Filtering rows before or equal to stop_filter...")
+                filtered_solar = solar_after_start[solar_after_start.index <= stop_filter]
+                logger.debug("Remaining rows after stop_filter: %d", len(filtered_solar))
+
+                logger.debug("Final filtered_solar dataframe head:\n%s", filtered_solar.head())
+
+            except Exception as e:
+                logger.error("Error during filtering solar data: %s", str(e))
+                raise
+
+            # Build the solar dictionary
+            solar_dict = filtered_solar.rename_axis("timestamp").reset_index()
+            solar_dict["timestamp"] = solar_dict["timestamp"].astype(str)
+            solar_dict = dict(
+                zip(
+                    solar_dict["timestamp"],
+                    around(solar_dict[field_to_query], 2),
+                    strict=False,
+                )
+            )
+            logger.debug("Response converted to dictionary.")
+        else:
+            logger.error("Failed to build solar dataframe.")
+            solar_dict = {}
+
+        return solar_dict
 
     def retrieve_weather_forecast(
         self, start: datetime, stop: datetime, variable: WeatherForecastType, interval: int = 10
