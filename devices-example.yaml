@@ -912,7 +912,7 @@
         - time: "06:00"
           data: 0
 - friendly_name: Photovoltaic Panels
-  entity_id: roftop_photovoltaic_panels
+  entity_id: rooftop_photovoltaic_panels
   group: low
   type: photovoltaic_generator
   description: PV installed on the rooftop of the house.
