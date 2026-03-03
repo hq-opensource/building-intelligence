@@ -86,7 +86,7 @@ The architecture of the Building Intelligence platform is modular, consisting of
 
 3. Start Building Intelligence with Docker Compose:
     ```bash
-    docker-compose --env-file docker.env up
+    docker-compose --env-file docker.env up -d
     ```
 
 ## API Documentation

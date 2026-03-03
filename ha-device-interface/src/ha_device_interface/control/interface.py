@@ -122,6 +122,7 @@ class HomeAssistantDeviceInterface(DeviceInterface):
             "electric_storage_soc": "sensor.battery_soc",
             "electric_storage_power": "sensor.battery_power",
             "water_heater_temperature": f"sensor.{device['entity_id']}_temperature",
+            "ev_charger_station": f"number.{device['entity_id']}",
         }
 
         state_to_get = {
@@ -129,6 +130,7 @@ class HomeAssistantDeviceInterface(DeviceInterface):
             "space_heating": "temperature",
             "on_off_ev_charger": "state",
             "electric_storage": "state",
+            "ev_charger_station": "state",
         }
 
         if field is not None:
@@ -179,6 +181,7 @@ class HomeAssistantDeviceInterface(DeviceInterface):
             "space_heating": "services/climate/set_temperature",
             "on_off_ev_charger": f"services/switch/{'turn_on' if action else 'turn_off'}",
             "electric_storage": f"events/{'set_recharge_battery_power' if action >= 0 else 'set_discharge_battery_power'}",
+            "ev_charger_station": "services/number/set_value",
         }
 
         url = f"http://{self._host}:{self._port}/api/{url_suffix[device['type']]}"
@@ -191,6 +194,7 @@ class HomeAssistantDeviceInterface(DeviceInterface):
             },
             "on_off_ev_charger": {"entity_id": f"switch.{device['entity_id']}"},
             "electric_storage": {"power_value": abs(int(action))},
+            "ev_charger_station": {"entity_id": f"number.{device['entity_id']}", "value": action},
         }
 
         response = post(url, headers=headers, json=body[device["type"]])

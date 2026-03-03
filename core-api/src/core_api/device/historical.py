@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List
 
 from common.database.influxdb import InfluxManager
@@ -261,6 +261,72 @@ class HistoricalDataReader:
 
         # Retrieve state
         return self._get_data(start, stop, bucket, measurement, fields, tags)
+
+    def get_ev_soc_last(self, entity_id: str) -> float:
+        """
+        Gets the last registered State of Charge for an EV.
+        Looks back up to 30 days to find a value.
+        """
+        mapping = self._labels_influx["v1g_state_of_charge"]
+        bucket = mapping["bucket"]
+        measurement = mapping["measurement"]
+        field = mapping["field"]
+        tags = mapping["tags"].copy()
+        tags["_type"] = "measure"
+
+        # Look back 60 days
+        stop = datetime.now().astimezone()
+        start = stop - timedelta(days=60)
+        
+        result = self._influx_manager.read(
+            start=start,
+            stop=stop,
+            msname=measurement,
+            fields=[field],
+            bucket=bucket,
+            tags=tags,
+            interval="1m",
+            agg_func="last"
+        )
+        
+        if result.empty:
+            logger.warning(f"No SoC found for EV {entity_id} in the last 30 days.")
+            return 0.0
+            
+        return float(result[field].iloc[-1])
+
+    def get_ev_soc_current(self, entity_id: str) -> float:
+        """
+        Gets the current State of Charge for an EV.
+        If not found in the last 15 minutes, falls back to the last registered value.
+        """
+        mapping = self._labels_influx["v1g_state_of_charge"]
+        bucket = mapping["bucket"]
+        measurement = mapping["measurement"]
+        field = mapping["field"]
+        tags = mapping["tags"].copy()
+        tags["_type"] = "measure"
+
+        # Look back 15 minutes
+        stop = datetime.now().astimezone()
+        start = stop - timedelta(minutes=15)
+        
+        result = self._influx_manager.read(
+            start=start,
+            stop=stop,
+            msname=measurement,
+            fields=[field],
+            bucket=bucket,
+            tags=tags,
+            interval="1s",
+            agg_func="last"
+        )
+        
+        if result.empty:
+            logger.info(f"No current SoC found for EV {entity_id}, falling back to last registered.")
+            return self.get_ev_soc_last(entity_id)
+            
+        return float(result[field].iloc[-1])
 
     def _get_data(
         self, start: datetime, stop: datetime, bucket: str, measurement: str, fields: List[str], tags: Dict[str, str]

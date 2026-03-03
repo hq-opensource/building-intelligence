@@ -21,3 +21,4 @@ class DeviceType(Enum):
     SPACE_HEATING = "space_heating"
     THERMAL_STORAGE = "thermal_storage"
     WATER_HEATER = "water_heater"
+    EV_CHARGER_STATION = "ev_charger_station"

@@ -193,3 +193,37 @@ async def get_device_state(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Device {device_id} not found.")
 
     return await realtime_data.get_device_state(RedisBroker(redis_url), device_id, field)
+
+
+# Get EV SoC (Last)
+@DevicesAPI.get(
+    "/ev/soc/last/{device_id}",
+    tags=["EV management"],
+    operation_id="get_ev_soc_last",
+    summary="Get the last registered SoC of an EV.",
+)
+async def get_ev_soc_last(
+    device_id: str = Path(description="ID of the device."),
+) -> float:
+    """Get the last registered SoC of an EV."""
+    if not realtime_data.has_device(device_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Device {device_id} not found.")
+
+    return historical_data.get_ev_soc_last(device_id)
+
+
+# Get EV SoC (Current)
+@DevicesAPI.get(
+    "/ev/soc/current/{device_id}",
+    tags=["EV management"],
+    operation_id="get_ev_soc_current",
+    summary="Get the current SoC of an EV (with fallback).",
+)
+async def get_ev_soc_current(
+    device_id: str = Path(description="ID of the device."),
+) -> float:
+    """Get the current SoC of an EV."""
+    if not realtime_data.has_device(device_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Device {device_id} not found.")
+
+    return historical_data.get_ev_soc_current(device_id)

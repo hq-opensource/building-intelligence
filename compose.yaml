@@ -19,6 +19,10 @@ services:
       retries: 5
     volumes:
       - redis-data:/bitnami/redis/data
+    profiles:
+      - build
+      - deploy
+      - all
 
 
   influxdb:
@@ -42,6 +46,10 @@ services:
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_TOKEN}
     volumes:
       - influxdb-data:/var/lib/influxdb2
+    profiles:
+      - build
+      - deploy
+      - all
 
 
   # =========================================================================================
@@ -54,6 +62,10 @@ services:
       context: .
       dockerfile: ./initializers/Dockerfile
     restart: on-failure # This needs to run only once
+    profiles:
+      - build
+      - deploy
+      - all
     environment:
       REDIS_HOST: ${REDIS_HOST:-redis}
       REDIS_PORT: ${REDIS_PORT:-6379}
@@ -78,9 +90,13 @@ services:
   cold-pickup-mpc:
     container_name: cold-pickup-mpc
     build:
-      context: .
-      dockerfile: ./cold-pickup-mpc/Dockerfile
+      context: ../predictive-control
+      dockerfile: ./Dockerfile
     restart: always
+    profiles:
+      - build
+      - deploy
+      - all
     environment:
       REDIS_HOST: ${REDIS_HOST:-redis}
       REDIS_PORT: ${REDIS_PORT:-6379}
@@ -107,6 +123,10 @@ services:
       context: .
       dockerfile: ./core-api/Dockerfile
     restart: always
+    profiles:
+      - build
+      - deploy
+      - all
     ports:
       - 8000:8000
     environment:
@@ -128,6 +148,10 @@ services:
       context: .
       dockerfile: ./data-engine/Dockerfile
     restart: always
+    profiles:
+      - build
+      - deploy
+      - all
     environment:
       REDIS_HOST: ${REDIS_HOST:-redis}
       REDIS_PORT: ${REDIS_PORT:-6379}
@@ -155,6 +179,10 @@ services:
       context: .
       dockerfile: ./frontend/Dockerfile
     restart: always
+    profiles:
+      - build
+      - deploy
+      - all
     ports:
       - 8200:8200
     volumes:
@@ -174,6 +202,10 @@ services:
       context: .
       dockerfile: ./grid-services-api/Dockerfile
     restart: always
+    profiles:
+      - build
+      - deploy
+      - all
     ports:
       - 8001:8001
     volumes:
@@ -192,6 +224,10 @@ services:
       context: .
       dockerfile: ./ha-device-interface/Dockerfile
     restart: always
+    profiles:
+      - build
+      - deploy
+      - all
     environment:
       REDIS_HOST: ${REDIS_HOST:-redis}
       REDIS_PORT: ${REDIS_PORT:-6379}

@@ -336,7 +336,7 @@ class HistoricQueries:
         else:
             ev_total_consumption_df = pd.DataFrame()
 
-        # Retrieve information for electric vehicle
+        # Retrieve information for water heater
         num_water_heater = DeviceHelper.count_devices_by_type(self._devices, DeviceHelper.WATER_HEATER.value)
         if num_water_heater > 0:
             bucket = self._labels_influx["wh_power"]["bucket"]
