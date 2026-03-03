@@ -25,5 +25,12 @@ lnbits.yaml
 influxdb_mapping.yaml
 custom
 node_modules/
+# Python compiled files
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+.cache/
+.venv/
