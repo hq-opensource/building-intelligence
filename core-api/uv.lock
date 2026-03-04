@@ -139,7 +139,7 @@ requires-dist = [
     { name = "debugpy", specifier = ">=1.8.12" },
     { name = "fastapi", specifier = ">=0.115.0" },
     { name = "fastapi-mcp", specifier = ">=0.2.0" },
-    { name = "faststream", extras = ["redis"], specifier = ">=0.5.23" },
+    { name = "faststream", extras = ["redis"], specifier = "==0.5.25" },
     { name = "influxdb-client", specifier = ">=1.46.0" },
     { name = "isodate", specifier = ">=0.7.2" },
     { name = "pandas", specifier = ">=2.2.3" },
@@ -215,16 +215,16 @@ wheels = [
 
 [[package]]
 name = "faststream"
-version = "0.5.23"
+version = "0.5.25"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
     { name = "fast-depends" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2e/00/66af9192d5f34586010bb6700a50edd7e43e6989b9d6c44d52c7130ff482/faststream-0.5.23.tar.gz", hash = "sha256:c3917ef2cffac924ae053a07ff308fa76a89ac370c7b4173bd99a73f250fcfa0", size = 275569, upload-time = "2024-09-09T19:45:34.884Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/06/93/842e6e1e3eb3b87cf1672ec705a52ba025a94cf0283bf12fdac696abbb07/faststream-0.5.25.tar.gz", hash = "sha256:926a4a8e013140a37b1c06ad16eb9a35529c9f626def3d846ec4ac171e050bc6", size = 276494, upload-time = "2024-09-25T19:26:02.157Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/59/f4/f6cd8c7be1f5fac73af86ef23f64a8cc5183f886dd02b8c4ea70f4b6cf76/faststream-0.5.23-py3-none-any.whl", hash = "sha256:6847335348345a095e48cb0bbd022d75149c461d9ebbecd1a97644b35844bcfe", size = 364992, upload-time = "2024-09-09T19:45:33.283Z" },
+    { url = "https://files.pythonhosted.org/packages/73/4e/4dee112ade7eb13672f76e9669eef099db1b1ca14e18094fb473b0de41ff/faststream-0.5.25-py3-none-any.whl", hash = "sha256:872d88a112d3d9c454dbc0fa4fe4211717e4422b3aa2f75f9d239bffc3c31075", size = 366560, upload-time = "2024-09-25T19:25:57.545Z" },
 ]
 
 [package.optional-dependencies]

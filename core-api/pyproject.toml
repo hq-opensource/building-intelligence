@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13,<3.14"
 dependencies = [
     "fastapi>=0.115.0",
-    "faststream[redis]>=0.5.23",
+    "faststream[redis]==0.5.25",
     "uvicorn>=0.30.6",
     "pandas>=2.2.3",
     "isodate>=0.7.2",
