@@ -3,7 +3,7 @@ name = "core-api"
 version = "0.0.1"
 description = "Peripheral main API."
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.13,<3.14"
 dependencies = [
     "fastapi>=0.115.0",
     "faststream[redis]>=0.5.23",
@@ -15,6 +15,9 @@ dependencies = [
     "fastapi-mcp>=0.2.0",
     "python-dotenv>=1.0.1",
     "debugpy>=1.8.12",
+    "influxdb-client>=1.46.0",
+    "pytz>=2024.1",
+    "pydantic>=2.0.0,<2.10.0",
 ]
 
 [tool.uv.sources]

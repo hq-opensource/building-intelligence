@@ -104,8 +104,17 @@ class InfluxManager:
         api_queryfcast = self._influx_client.query_api()
         query_results = api_queryfcast.query_data_frame(query)
         if query_results.empty:
-            results_to_return = pd.DataFrame()
+            results_to_return = pd.DataFrame(columns=fields)
         else:
+            # Ensure all requested fields are present in the dataframe
+            for field in fields:
+                if field not in query_results.columns:
+                    query_results[field] = 0.0
+
+            # Ensure all requested fields are present in the dataframe
+            for field in fields:
+                if field not in query_results.columns:
+                    query_results[field] = 0.0
             results_to_return = query_results[fields]
             results_to_return = results_to_return.set_index(query_results["_time"])
             results_to_return.index.name = None
@@ -292,6 +301,10 @@ class InfluxManager:
         if query_results.empty:
             results_to_return = pd.DataFrame()
         else:
+            # Ensure all requested fields are present in the dataframe
+            for field in fields:
+                if field not in query_results.columns:
+                    query_results[field] = 0.0
             results_to_return = query_results[fields]
             results_to_return = results_to_return.set_index(query_results["_time"])
             results_to_return.index.name = None
@@ -359,6 +372,10 @@ class InfluxManager:
         if query_results.empty:
             results_to_return = pd.DataFrame()
         else:
+            # Ensure all requested fields are present in the dataframe
+            for field in fields:
+                if field not in query_results.columns:
+                    query_results[field] = 0.0
             results_to_return = query_results[fields]
             results_to_return = results_to_return.set_index(query_results["_time"])
             results_to_return.index.name = None

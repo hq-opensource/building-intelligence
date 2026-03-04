@@ -59,6 +59,10 @@ class MockDeviceInterface(DeviceInterface):
             float: A mock value of 1.0.
         """
         logger.info(f"Received get device state request: {params}")
+        if "temperature" in str(params):
+            return 50.0
+        if params.get("device", {}).get("type") == "space_heating":
+            return 20.0
         return 1.0
 
     def set(self, params: dict) -> None:

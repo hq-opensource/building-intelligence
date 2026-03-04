@@ -80,13 +80,16 @@ class ForecastRetriever:
         periods_to_predict = int((end_time_forecast - start_time_forecast).total_seconds() // (interval * 60)) + 1
 
         # Compute the non controllable loads
+        logger.info("Computing historical non-controllable loads from %s to %s", start_historic, stop_historic)
         non_controllable_loads_historic = self._compute_non_controllable_historic(start_historic, stop_historic)
 
         # Compute forecast using prophet
+        logger.info("Executing Prophet learning and forecast for %s periods", periods_to_predict)
         prophet_model = self._execute_prophet_learning(non_controllable_loads_historic)
         non_controllable_loads_forecast = self._load_forecast_using_prophet(prophet_model, periods_to_predict, interval)
 
         # Create a dataframe to save results
+        logger.info("Saving forecast results to InfluxDB")
         bucket = self._labels_influx["not_controllable_loads"]["bucket"]
         measurement = self._labels_influx["not_controllable_loads"]["measurement"]
         field = self._labels_influx["not_controllable_loads"]["field"]
@@ -159,7 +162,9 @@ class ForecastRetriever:
             growth="flat",
             # interval_width=0.95,
         )
+        logger.info("Fitting Prophet model with %s data points", len(prophet_df))
         prophet_model.fit(prophet_df)
+        logger.info("Prophet model fitting completed")
 
         return prophet_model
 

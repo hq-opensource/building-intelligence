@@ -1,33 +1,42 @@
-FROM python:3.11.0-slim-bullseye AS builder
+# Use a Python 3.13 image
+FROM python:3.13-slim AS builder
 
-# Install Poetry tool
-RUN pip3 install poetry && poetry --version
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-ENV POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_IN_PROJECT=1 \
-    POETRY_VIRTUALENVS_CREATE=1 \
-    POETRY_CACHE_DIR=/tmp/poetry_cache
-
+# Set working directory
 WORKDIR /app
 
-# Copy the application source files
+# Enable bytecode compilation
+ENV UV_COMPILE_BYTECODE=1
+
+# Copy the source code
 COPY common common
 COPY ha-device-interface ha-device-interface
 
-WORKDIR /app/ha-device-interface
+# Install dependencies and the project into a virtual environment
+RUN uv venv /app/.venv
+ENV PATH="/app/.venv/bin:$PATH"
 
-# Install the dependencies and create a virtual environment
-RUN poetry install
+# Install common first
+RUN uv pip install ./common
 
-# The runtime
-FROM python:3.11.0-slim-bullseye AS runtime
+# Install ha-device-interface
+RUN uv pip install ./ha-device-interface
 
-# Add the virtual environment binaries to PATH
-ENV PATH="/app/ha-device-interface/.venv/bin:$PATH"
+# Final stage
+FROM python:3.13-slim AS runtime
 
-# Copy the files (including the virtual environment) from the builder
+WORKDIR /app
+
+# Copy the virtual environment and application code from the builder
 COPY --from=builder /app /app
 
+# Set environment variables
+ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONUNBUFFERED=1
+
 WORKDIR /app/ha-device-interface
 
+# Command to run the application
 ENTRYPOINT ["python", "-m", "ha_device_interface.app"]

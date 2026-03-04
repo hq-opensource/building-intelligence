@@ -1,6 +1,10 @@
 import asyncio
 import datetime
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 from typing import Any, Dict, Optional, Tuple
 
@@ -87,7 +91,6 @@ mcp_app: FastApiMCP = FastApiMCP(
     main_app,
     name="Peripheral API MCP",
     description="MCP server for Peripheral API, exposing endpoints as tools for AI agents.",
-    base_url="http://localhost:8000",
     describe_all_responses=True,
     describe_full_response_schema=True,
 )
