@@ -258,7 +258,7 @@ class ForecastRetriever:
             battery_total_consumption_df = pd.DataFrame()
 
         # Retrieve information for electric vehicle
-        num_ev = DeviceHelper.count_devices_by_type(self._devices, DeviceHelper.ON_OFF_EV_CHARGER.value)
+        num_ev = DeviceHelper.count_devices_by_type(self._devices, DeviceHelper.ELECTRIC_VEHICLE_V1G.value)
         if num_ev > 0:
             bucket = self._labels_influx["v1g_net_power"]["bucket"]
             measurement = self._labels_influx["v1g_net_power"]["measurement"]
@@ -303,9 +303,7 @@ class ForecastRetriever:
         # The generation (PV) is intentionally left in the math because it natively offsets 
         # the net load, which explains why forecasts can correctly be negative during sunny hours.
         # We also fix the EV sign inversion so its load correctly subtracts from the net meter.
-        neg_consumption = (total_consumption * -1) + tot_thermostats + tot_water_heater + tot_ev
-        # If battery needs to be re-added later, simply use:
-        # neg_consumption = (total_consumption * -1) + tot_thermostats + tot_battery + tot_water_heater + tot_ev
+        neg_consumption = (total_consumption * -1) + tot_thermostats + tot_battery + tot_water_heater + tot_ev
         # endregion to compute the non controllable loads
 
         # region to save the non controllable loads in Influx
