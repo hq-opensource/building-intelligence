@@ -11,7 +11,7 @@
   min_temperature: 30  # default: 30C
   max_temperature: 90  # default: 90C
   inlet_temperature: 16  # default: 16C
-  water_heater_constat: 1.1638 # Wh/C/Litre
+  water_heater_constant: 1.1638 # Wh/C/Litre
   critical_state: 40.0
   desired_state: 80.0
   power_capacity: 4.5
