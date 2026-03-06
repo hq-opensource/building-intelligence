@@ -1,0 +1,82 @@
+# Infrastructure-only compose for local development.
+# Python microservices run natively via `uv` — see package.json scripts.
+# For production (all services in Docker), use compose.yaml instead.
+#
+# Usage:
+#   pnpm run infra:up    # start infrastructure
+#   pnpm run infra:down  # stop infrastructure
+
+services:
+  redis:
+    image: bitnami/redis:latest
+    container_name: redis
+    hostname: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - redis-data:/bitnami/redis/data
+
+  influxdb:
+    image: influxdb:2.7.12
+    container_name: influxdb
+    hostname: influxdb
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUXDB_USERNAME}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUXDB_ORG}
+      DOCKER_INFLUXDB_INIT_BUCKET: develop
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_TOKEN}
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+
+  messagebroker:
+    image: eclipse-mosquitto:2.0.18-openssl
+    container_name: messagebroker
+    hostname: messagebroker
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    # No mosquitto.conf mounted — default config allows local anonymous connections.
+    # Add a volume mount here if authentication is required later.
+
+  telegraf:
+    image: telegraf:latest
+    container_name: telegraf
+    hostname: telegraf
+    restart: unless-stopped
+    environment:
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
+      INFLUXDB_ORG: ${INFLUXDB_ORG}
+      INFLUXDB_URL: http://influxdb:8086
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    # No telegraf.conf found in building-intelligence/.
+    # The project telegraf config lives at:
+    #   telegraf_configuration/buildings/meeb_2/telegraf.conf
+    # To mount it, uncomment and adjust the path below:
+    # volumes:
+    #   - ../telegraf_configuration/buildings/meeb_2/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+
+volumes:
+  redis-data:
+    name: bi_local_redis-data
+  influxdb-data:
+    name: bi_local_influxdb-data
