@@ -6,16 +6,16 @@ readme = "README.md"
 requires-python = ">=3.13,<3.14"
 dependencies = [
     "redis>=5.1.1",
-    "faststream[redis]==0.5.23",
+    "faststream[redis]>=0.5.30",
     "requests>=2.32.3",
     "python-dotenv>=1.0.1",
     "debugpy>=1.8.12",
     "common",
-    "pydantic>=2.0.0,<2.10.0",
+    "pydantic>=2.10.2",
 ]
 
 [tool.uv.sources]
-common = { path = "../common" }
+common = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]

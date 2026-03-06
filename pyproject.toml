@@ -1,3 +1,13 @@
+[tool.uv.workspace]
+members = [
+    "common",
+    "core-api",
+    "data-engine",
+    "ha-device-interface",
+    "grid-services-api",
+    "initializers",
+]
+
 [tool.ruff]
 target-version = "py311"
 line-length = 120

@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13,<3.14"
 dependencies = [
     "fastapi>=0.115.0",
-    "faststream[redis]==0.5.25",
+    "faststream[redis]>=0.5.30",
     "uvicorn>=0.30.6",
     "pandas>=2.2.3",
     "isodate>=0.7.2",
@@ -17,11 +17,11 @@ dependencies = [
     "debugpy>=1.8.12",
     "influxdb-client>=1.46.0",
     "pytz>=2024.1",
-    "pydantic>=2.0.0,<2.10.0",
+    "pydantic>=2.10.2",
 ]
 
 [tool.uv.sources]
-common = { path = "../common" }
+common = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]

@@ -8,7 +8,7 @@ dependencies = [
     "pandas>=2.2.3",
     "prophet>=1.1.5",
     "numpy>=2.0",
-    "faststream[redis]==0.5.25",
+    "faststream[redis]>=0.5.30",
     "cvxpy>=1.5.3",
     "apscheduler>=3.10.4",
     "schedule>=1.2.2",
@@ -16,12 +16,12 @@ dependencies = [
     "debugpy>=1.8.12",
     "influxdb-client>=1.46.0",
     "pytz>=2024.1",
-    "pydantic>=2.0.0,<2.10.0",
+    "pydantic>=2.10.2",
     "common",
 ]
 
 [tool.uv.sources]
-common = { path = "../common" }
+common = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]
