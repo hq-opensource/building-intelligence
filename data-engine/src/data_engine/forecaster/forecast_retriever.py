@@ -300,11 +300,12 @@ class ForecastRetriever:
         )
 
         # Compute the non controllable loads
-        # TODO: Juan, verify this computation to validate if this is correct.
-        # TODO: Maybe delete the generation? Leave only the consumption?
-        # TODO: Delete the battery temporary!
-        neg_consumption = (total_consumption * -1) + tot_thermostats + tot_water_heater + (tot_ev * -1)
-        # neg_consumption = (total_consumption * -1) + tot_thermostats + tot_battery + tot_water_heater + (tot_ev * -1)
+        # The generation (PV) is intentionally left in the math because it natively offsets 
+        # the net load, which explains why forecasts can correctly be negative during sunny hours.
+        # We also fix the EV sign inversion so its load correctly subtracts from the net meter.
+        neg_consumption = (total_consumption * -1) + tot_thermostats + tot_water_heater + tot_ev
+        # If battery needs to be re-added later, simply use:
+        # neg_consumption = (total_consumption * -1) + tot_thermostats + tot_battery + tot_water_heater + tot_ev
         # endregion to compute the non controllable loads
 
         # region to save the non controllable loads in Influx
