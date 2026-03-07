@@ -85,9 +85,25 @@ The architecture of the Building Intelligence platform is modular, consisting of
     Our Influx cloud instance is free to use. Contact us if you want to use our instances, but, read the [contributor license agreement](CONTRIBUTOR_LICENSE_AGREEMENT.md) file first. 
 
 3. Start Building Intelligence with Docker Compose:
+
+    Building Intelligence utilizes Docker Compose profiles to manage different deployment scenarios. The available profiles include `build`, `deploy`, and `all`. You should specify a profile when running Docker Compose commands.
+
+    **To build the Docker images:**
     ```bash
-    docker-compose --env-file docker.env up -d
+    docker compose --env-file docker.env --profile all build
     ```
+
+    **To start the services (take it up) in detached mode:**
+    ```bash
+    docker compose --env-file docker.env --profile all up -d
+    ```
+
+    **To stop and remove the containers (take it down):**
+    ```bash
+    docker compose --env-file docker.env --profile all down
+    ```
+
+    *Note: You can replace `all` with `deploy` or `build` depending on the specific profile you wish to use.*
 
 ## API Documentation
 Building Intelligence offers a RESTful API to interact with building devices and activate grid services. Once the system is deployed, the API documentation is available at:

@@ -8,7 +8,7 @@ load_dotenv()
 from datetime import datetime
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from faststream import FastStream, context
+from faststream import FastStream
 from faststream.redis import RedisBroker
 
 from common.database.influxdb import InfluxManager
@@ -63,15 +63,15 @@ def main() -> None:
     redis_url = f"redis://:{redis_password}@{redis_host}:{redis_port}"
     broker = RedisBroker(redis_url)
 
-    # Set the scheduler in the context so that it can be accessed by the routers
-    context.set_global("scheduler", scheduler)
-
     # Include routers on the broker
     broker.include_router(forecast_router)
     # broker.include_router(telemetry_router)
 
     # Create the app
     broker_events_app = FastStream(broker)
+    
+    # Set the scheduler in the context so that it can be accessed by the routers
+    broker_events_app.context.set_global("scheduler", scheduler)
 
     # Create the influx manager
     influxdb_url = os.getenv("INFLUXDB_URL")

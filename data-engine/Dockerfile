@@ -17,6 +17,7 @@ WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1
 
 # Copy the source code
+COPY pyproject.toml uv.lock ./
 COPY common common
 COPY data-engine data-engine
 
