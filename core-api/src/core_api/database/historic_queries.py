@@ -42,7 +42,7 @@ class HistoricQueries:
         self._devices = redis_client.safe_read_from_redis("user_devices")
         self._thermal_model = redis_client.safe_read_from_redis("thermal_model")
 
-    def load_tz_temperature_historic(self, start: datetime, stop: datetime, entity_id: str) -> pd.DataFrame:
+    def load_tz_temperature_historic(self, start: datetime, stop: datetime, entity_id: str) -> dict:
         """
         Retrieves the historic temperature for a given thermal zone.
 
@@ -52,7 +52,7 @@ class HistoricQueries:
             entity_id (str): The ID of the thermal zone.
 
         Returns:
-            pd.DataFrame: A DataFrame containing the temperature data.
+            dict: A dictionary mapping timestamps to temperature values.
         """
         # Load info for the influx query
         bucket = self._labels_influx["sh_temperature"]["bucket"]
@@ -69,28 +69,28 @@ class HistoricQueries:
 
         # Check if the query returned any data
         if tz_temperature_historic_query.empty:
-            tz_temperature_historic = pd.DataFrame()
-        else:
-            # Perform sampling
-            tz_temperature_historic = (
-                tz_temperature_historic_query.resample(str(self._labels_market["dac_timestep"]) + "min")
-                .mean()
-                .interpolate(method="linear", limit_direction="forward")
-            )
+            return {}
 
-        tz_temperature_historic_dict = tz_temperature_historic.rename_axis("timestamp").reset_index()
-        tz_temperature_historic_dict["timestamp"] = tz_temperature_historic_dict["timestamp"].astype(str)
+        # Perform sampling
+        tz_temperature_historic = (
+            tz_temperature_historic_query.resample(str(self._labels_market["dac_timestep"]) + "min")
+            .mean()
+            .interpolate(method="linear", limit_direction="forward")
+        )
+
+        tz_temperature_historic_records = tz_temperature_historic.rename_axis("timestamp").reset_index()
+        tz_temperature_historic_records["timestamp"] = tz_temperature_historic_records["timestamp"].astype(str)
         tz_temperature_historic_dict = dict(
             zip(
-                tz_temperature_historic_dict["timestamp"],
-                around(tz_temperature_historic_dict[fields[0]], 1),
+                tz_temperature_historic_records["timestamp"],
+                around(tz_temperature_historic_records[fields[0]], 1),
                 strict=False,
             )
         )
 
         return tz_temperature_historic_dict
 
-    def load_tz_setpoint_historic(self, start: datetime, stop: datetime, entity_id: str) -> pd.DataFrame:
+    def load_tz_setpoint_historic(self, start: datetime, stop: datetime, entity_id: str) -> dict:
         """
         Retrieves the historic setpoint for a given thermal zone.
 
@@ -100,7 +100,7 @@ class HistoricQueries:
             entity_id (str): The ID of the thermal zone.
 
         Returns:
-            pd.DataFrame: A DataFrame containing the setpoint data.
+            dict: A dictionary mapping timestamps to setpoint values.
         """
         # Load info for the influx query
         bucket = self._labels_influx["sh_setpoint"]["bucket"]
@@ -117,28 +117,28 @@ class HistoricQueries:
 
         # Check if the query returned any data
         if tz_setpoint_historic_query.empty:
-            tz_setpoint_historic = pd.DataFrame()
-        else:
-            # Perform sampling
-            tz_setpoint_historic = (
-                tz_setpoint_historic_query.resample(str(self._labels_market["dac_timestep"]) + "min")
-                .mean()
-                .interpolate(method="linear", limit_direction="forward")
-            )
+            return {}
 
-        tz_setpoint_historic_dict = tz_setpoint_historic.rename_axis("timestamp").reset_index()
-        tz_setpoint_historic_dict["timestamp"] = tz_setpoint_historic_dict["timestamp"].astype(str)
+        # Perform sampling
+        tz_setpoint_historic = (
+            tz_setpoint_historic_query.resample(str(self._labels_market["dac_timestep"]) + "min")
+            .mean()
+            .interpolate(method="linear", limit_direction="forward")
+        )
+
+        tz_setpoint_historic_records = tz_setpoint_historic.rename_axis("timestamp").reset_index()
+        tz_setpoint_historic_records["timestamp"] = tz_setpoint_historic_records["timestamp"].astype(str)
         tz_setpoint_historic_dict = dict(
             zip(
-                tz_setpoint_historic_dict["timestamp"],
-                around(tz_setpoint_historic_dict[fields[0]], 1),
+                tz_setpoint_historic_records["timestamp"],
+                around(tz_setpoint_historic_records[fields[0]], 1),
                 strict=False,
             )
         )
 
         return tz_setpoint_historic_dict
 
-    def load_tz_electric_consumption(self, start: datetime, stop: datetime, entity_id: str) -> pd.DataFrame:
+    def load_tz_electric_consumption(self, start: datetime, stop: datetime, entity_id: str) -> dict:
         """
         Retrieves the electric consumption of a specific thermal zone.
 
@@ -148,7 +148,7 @@ class HistoricQueries:
             entity_id (str): The ID of the thermal zone.
 
         Returns:
-            pd.DataFrame: A DataFrame containing the electric consumption data.
+            dict: A dictionary mapping timestamps to electric consumption values.
         """
         # Load info for the influx query
         bucket = self._labels_influx["sh_power"]["bucket"]
@@ -165,21 +165,21 @@ class HistoricQueries:
 
         # Check if the query returned any data
         if tz_electric_consumption_query.empty:
-            tz_electric_consumption = tz_electric_consumption_query
-        else:
-            # Perform sampling
-            tz_electric_consumption = (
-                tz_electric_consumption_query.resample(str(self._labels_market["dac_timestep"]) + "min")
-                .mean()
-                .interpolate(method="linear", limit_direction="forward")
-            )
+            return {}
 
-        tz_electric_consumption_dict = tz_electric_consumption.rename_axis("timestamp").reset_index()
-        tz_electric_consumption_dict["timestamp"] = tz_electric_consumption_dict["timestamp"].astype(str)
+        # Perform sampling
+        tz_electric_consumption = (
+            tz_electric_consumption_query.resample(str(self._labels_market["dac_timestep"]) + "min")
+            .mean()
+            .interpolate(method="linear", limit_direction="forward")
+        )
+
+        tz_electric_consumption_records = tz_electric_consumption.rename_axis("timestamp").reset_index()
+        tz_electric_consumption_records["timestamp"] = tz_electric_consumption_records["timestamp"].astype(str)
         tz_electric_consumption_dict = dict(
             zip(
-                tz_electric_consumption_dict["timestamp"],
-                around(tz_electric_consumption_dict[fields[0]], 2),
+                tz_electric_consumption_records["timestamp"],
+                around(tz_electric_consumption_records[fields[0]], 2),
                 strict=False,
             )
         )
