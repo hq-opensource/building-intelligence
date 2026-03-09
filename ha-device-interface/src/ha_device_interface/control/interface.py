@@ -119,14 +119,22 @@ class HomeAssistantDeviceInterface(DeviceInterface):
             "Content-Type": "application/json",
         }
 
+        ha_device_id = device['entity_id']
+        if ha_device_id == "water_heater":
+            if field in ["water_heater_temperature", "temperature_water_heater"]:
+                ha_device_id = "chauffe_eau"
+            else:
+                ha_device_id = "sinope_technologies_rm3500zb"
+
         url_suffix = {
-            "water_heater": f"switch.{device['entity_id']}",
-            "space_heating": f"climate.{device['entity_id']}",
-            "on_off_ev_charger": f"switch.{device['entity_id']}",
+            "water_heater": f"switch.{ha_device_id}",
+            "space_heating": f"climate.{ha_device_id}",
+            "on_off_ev_charger": f"switch.{ha_device_id}",
             "electric_storage_soc": "sensor.battery_soc",
             "electric_storage_power": "sensor.battery_power",
-            "water_heater_temperature": f"sensor.{device['entity_id']}_temperature",
-            "ev_charger_station": f"number.{device['entity_id']}",
+            "water_heater_temperature": f"sensor.{ha_device_id}_temperature",
+            "temperature_water_heater": f"sensor.{ha_device_id}_temperature",
+            "ev_charger_station": f"number.{ha_device_id}",
         }
 
         state_to_get = {
@@ -190,15 +198,19 @@ class HomeAssistantDeviceInterface(DeviceInterface):
 
         url = f"http://{self._host}:{self._port}/api/{url_suffix[device['type']]}"
 
+        ha_device_id = device['entity_id']
+        if ha_device_id == "water_heater":
+            ha_device_id = "sinope_technologies_rm3500zb"
+
         body = {
-            "water_heater": {"entity_id": f"switch.{device['entity_id']}"},
+            "water_heater": {"entity_id": f"switch.{ha_device_id}"},
             "space_heating": {
-                "entity_id": f"climate.{device['entity_id']}",
+                "entity_id": f"climate.{ha_device_id}",
                 "temperature": action,
             },
-            "on_off_ev_charger": {"entity_id": f"switch.{device['entity_id']}"},
+            "on_off_ev_charger": {"entity_id": f"switch.{ha_device_id}"},
             "electric_storage": {"power_value": abs(int(action))},
-            "ev_charger_station": {"entity_id": f"number.{device['entity_id']}", "value": action},
+            "ev_charger_station": {"entity_id": f"number.{ha_device_id}", "value": action},
         }
 
         response = post(url, headers=headers, json=body[device["type"]])
