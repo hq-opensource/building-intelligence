@@ -78,23 +78,36 @@ class DeviceScheduler(AbstractScheduler):
         if time_target.tzinfo is None:
             time_target = pytz.UTC.localize(time_target)
 
-        # Calculate time boundaries
-        time_limit = time_target - timedelta(seconds=self._time_step_duration_in_seconds)
-        time_target_inclusive = time_target + timedelta(microseconds=1)
+        # 1. Step 1: Check for changes in the last 60 seconds
+        logger.debug(f"Step 1: Checking for control changes at {time_target} for device {self._device_id}")
+        time_limit_60s = time_target - timedelta(seconds=self._time_step_duration_in_seconds)
+        event_data = self._query_event_data(time_target, time_limit_60s, time_target)
 
-        # Execute query
-        return self._query_event_data(time_target, time_limit, time_target_inclusive)
+        if event_data:
+            return event_data
+
+        # 2. Step 2: Fallback to the most recent 10-minute interval (staircase interpolation)
+        # Round down to the nearest 10-minute mark (00, 10, 20, 30, 40, 50)
+        minutes = (time_target.minute // 10) * 10
+        time_10m = time_target.replace(minute=minutes, second=0, microsecond=0)
+
+        # Avoid redundant query if time_target was already a 10m mark and we just checked it
+        if time_10m == time_target:
+            return None
+
+        logger.debug(f"Step 2: No recent changes. Falling back to 10m interval at {time_10m} for device {self._device_id}")
+        return self._query_event_data(time_10m, time_10m, time_10m)
 
     def _query_event_data(
-        self, time_target: datetime, time_limit: datetime, time_target_inclusive: datetime
+        self, time_target: datetime, time_limit: datetime, time_range_end: datetime
     ) -> Optional[ScheduleEventData]:
         """
         Query InfluxDB to retrieve schedule event data within the specified time window.
 
         Args:
-            time_target: Target timestamp
+            time_target: Target timestamp for priority selection
             time_limit: Lower boundary of time window
-            time_target_inclusive: Upper boundary of time window (inclusive)
+            time_range_end: Upper boundary of time window (inclusive)
 
         Returns:
             ScheduleEventData if an event is found, None otherwise
@@ -102,24 +115,23 @@ class DeviceScheduler(AbstractScheduler):
 
         self._influx_manager.get_buckets_api()
 
-        time_windows_start = time_limit - timedelta(seconds=300)
-        time_windows_end = time_target_inclusive
+        # We look around the target time to find the points
+        # Influx range is exclusive on stop, so we add a tiny bit
+        time_windows_start = time_limit - timedelta(seconds=10)
+        time_windows_end = time_range_end + timedelta(seconds=1)
 
         # Build Flux query
+        # We filter for r._time >= timeLimit and r._time <= time_range_end
+        # This allows finding an exact point if timeLimit == time_range_end
         query = f'''
-        import "date"
         import "strings"
-        timeTarget = {time_target.isoformat()}
-        timeLimit = {time_limit.isoformat()}
-        timeWindowsStart = {time_windows_start.isoformat()}
-        timeWindowsEnd = {time_windows_end.isoformat()}
         from(bucket:"{self._bucket}")
-          |> range(start: timeWindowsStart, stop: timeWindowsEnd)
+          |> range(start: {time_windows_start.isoformat()}, stop: {time_windows_end.isoformat()})
           |> filter(fn: (r) => r["_type"] == "control")
           |> filter(fn: (r) => strings.hasSuffix(v: r["_field"], suffix: "{self._device_id}"))
           |> map(fn: (r) => ({{ r with priority_int: int(v: r.priority) }}))
+          |> filter(fn: (r) => r._time >= {time_limit.isoformat()} and r._time <= {time_range_end.isoformat()})
           |> group(columns: ["_field"])
-          |> filter(fn: (r) => r._time >= timeLimit and r._time <= timeTarget)
           |> top(n: 1, columns: ["priority_int","_time"])
         '''
 
@@ -247,22 +259,22 @@ class DeviceScheduler(AbstractScheduler):
             field_name = config["field"] + device_id
         elif device_type == DeviceHelper.ON_OFF_EV_CHARGER.value:
             config = labels_influx["ev_charger_net_power"]
-            field_name = config["field"]
+            field_name = config["field"] + "_" + device_id
         elif device_type == DeviceHelper.ELECTRIC_VEHICLE_V1G.value:
             config = labels_influx["v1g_net_power"]
-            field_name = config["field"]
+            field_name = config["field"] + "_" + device_id
         elif device_type == DeviceHelper.ELECTRIC_VEHICLE_V2G.value:
             config = labels_influx["v2g_net_power"]
-            field_name = config["field"]
+            field_name = config["field"] + "_" + device_id
         elif device_type == DeviceHelper.ELECTRIC_STORAGE.value:
             config = labels_influx["eb_net_power"]
-            field_name = config["field"]
+            field_name = config["field"] + "_" + device_id
         elif device_type == DeviceHelper.WATER_HEATER.value:
             config = labels_influx["wh_power"]
-            field_name = config["field"]
+            field_name = config["field"] + "_" + device_id
         elif device_type == DeviceHelper.THERMAL_STORAGE.value:
             config = labels_influx["ts_power"]
-            field_name = config["field"]
+            field_name = config["field"] + "_" + device_id
         else:
             logger.warning(f"Unsupported device type: {device_type}")
             return

@@ -107,26 +107,37 @@ def update_setpoints(system_just_started: bool = False) -> None:
     devices: Dict[str, Dict[str, Any]] = {
         device["entity_id"]: device for device in redis_client.safe_read_from_redis("user_devices") or []
     }
+    
+    # List of control types to monitor for real-time application
+    control_types_to_monitor = [
+        ControlType.CONTROL_SETPOINT,
+        ControlType.CONTROL_POWER,
+        ControlType.CONTROL_BATTERY_POWER
+    ]
+
     for device in devices:
-        data_and_changed: Tuple[Optional[Any], bool] = monitor.get_device_event_data_with_changed_flag(
-            device, ControlType.CONTROL_SETPOINT, timestamp
-        )
-        data, changed = data_and_changed
-        if data and (changed or system_just_started):
-            changed_count += 1
-            set_point: float = data.data
-            try:
-                asyncio.run(realtime_data.set_device_state(RedisBroker(redis_url), device, set_point))
-                logger.info(
-                    "Setpoint set to %s for device_id %s at %s. Event: %s", set_point, device, timestamp, data.event_id
-                )
-            except Exception as e:
-                logger.error("Error setting setpoint for device %s: %s", device, e)
-                continue
+        for control_type in control_types_to_monitor:
+            data_and_changed: Tuple[Optional[Any], bool] = monitor.get_device_event_data_with_changed_flag(
+                device, control_type, timestamp
+            )
+            data, changed = data_and_changed
+            if data and (changed or system_just_started):
+                changed_count += 1
+                action_value: float = data.data
+                try:
+                    asyncio.run(realtime_data.set_device_state(RedisBroker(redis_url), device, action_value))
+                    logger.info(
+                        "Action (%s) set to %s for device_id %s at %s. Event: %s", 
+                        control_type, action_value, device, timestamp, data.event_id
+                    )
+                except Exception as e:
+                    logger.error("Error setting %s for device %s: %s", control_type, device, e)
+                    continue
+                    
     if changed_count > 0:
-        logger.info("Changed setpoints for %s devices at %s", changed_count, timestamp)
+        logger.info("Executed %s control actions for devices at %s", changed_count, timestamp)
     else:
-        logger.info("No setpoints changed at %s", timestamp)
+        logger.info("No control actions required at %s", timestamp)
 
 
 def main() -> None:
