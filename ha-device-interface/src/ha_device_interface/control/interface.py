@@ -97,90 +97,118 @@ class HomeAssistantDeviceInterface(DeviceInterface):
         self._port = port
         self._token = token
 
+
+    def _resolve_ha_info(self, device_id: str, device_type: str, action: float = None, field: str = None) -> dict:
+        """Resolves the HA entity ID, domain, service and payload details."""
+        logger.debug(f"Resolving HA info for device_id={device_id}, device_type={device_type}, action={action}, field={field}")
+        
+        # Default info
+        info = {
+            "entity": f"sensor.{device_id}",
+            "domain": "sensor",
+            "service": "get_state",
+            "get_attr": "state",
+            "body": {"entity_id": f"sensor.{device_id}"}
+        }
+
+        # 1. Water Heater & Thermal Storage Logic
+        if device_type in ["water_heater", "thermal_storage"] or device_id == "water_heater":
+            if field in ["temperature_water_heater", "water_heater_temperature"]:
+                info["entity"] = "sensor.sinope_technologies_rm3500zb_device_temperature"
+                info["domain"] = "sensor"
+            else:
+                # Assuming thermal storage is also controlled via the same RMS3500ZB switch 
+                # or a similar one. Based on devices.yaml, they might share entity names 
+                # but here we follow the "Rosetta Stone"
+                info["entity"] = "switch.sinope_technologies_rm3500zb"
+                info["domain"] = "switch"
+                if action is not None:
+                    info["service"] = "turn_on" if action > 0 else "turn_off"
+                    info["body"] = {"entity_id": info["entity"]}
+
+        # 2. EV / Charger Logic
+        elif "evduty" in device_id or device_type in ["on_off_ev_charger", "ev_charger_station", "electric_vehicle_v1g"]:
+            info["entity"] = "number.evduty_borne_evduty_evc30_17286_meeb1_max_amp"
+            info["domain"] = "number"
+            if action is not None:
+                info["service"] = "set_value"
+                info["body"] = {"entity_id": info["entity"], "value": action}
+
+        # 3. Space Heating Logic
+        elif device_type == "space_heating":
+            info["entity"] = f"climate.{device_id}"
+            info["domain"] = "climate"
+            info["get_attr"] = "temperature" # setpoint
+            if action is not None:
+                info["service"] = "set_temperature"
+                info["body"] = {"entity_id": info["entity"], "temperature": action}
+
+        # 4. Electric Storage Logic
+        elif device_type == "electric_storage" or device_id == "electric_storage":
+            if field in ["state_of_charge", "electric_storage_soc"]:
+                info["entity"] = "sensor.battery_soc"
+                info["domain"] = "sensor"
+            else:
+                info["entity"] = "sensor.battery_power"
+                info["domain"] = "sensor"
+            
+            if action is not None:
+                # Battery uses custom events via REST API
+                event_name = "set_recharge_battery_power" if action >= 0 else "set_discharge_battery_power"
+                info["domain"] = "events" # Specialized for the URL construction
+                info["service"] = event_name
+                info["body"] = {"power_value": abs(int(action))}
+        
+        else:
+            logger.warning(f"Device type {device_type} (id={device_id}) not explicitly covered in mapping. Using fallback.")
+
+        return info
+
     def get(self, params: dict) -> float:
-        """Gets the current state of a Home Assistant device.
-
-        This method sends a GET request to the Home Assistant API to retrieve the current state of a device.
-        The device and the desired state are specified in the `params` dictionary.
-
-        Args:
-            params (dict): A dictionary of parameters specifying the device and the desired state.
-                It must contain a "device" key with a dictionary of device information, including the "entity_id"
-                and "type". It can also contain an optional "field" key to specify a particular field to retrieve.
-
-        Returns:
-            float: The current state of the device.
-        """
+        """Gets the current state of a Home Assistant device."""
         device = params["device"]
         field = params.get("field", None)
-
+        
         headers = {
             "Authorization": f"Bearer {self._token}",
             "Content-Type": "application/json",
         }
 
-        ha_device_id = device['entity_id']
-        if ha_device_id == "water_heater":
-            if field in ["water_heater_temperature", "temperature_water_heater"]:
-                ha_device_id = "chauffe_eau"
+        try:
+            info = self._resolve_ha_info(device["entity_id"], device["type"], field=field)
+            url = f"http://{self._host}:{self._port}/api/states/{info['entity']}"
+
+            response = get(url, headers=headers)
+            response.raise_for_status()
+
+            data = response.json()
+            logger.info("Device %s state successfully retrieved from %s", device["entity_id"], info['entity'])
+
+            if info["get_attr"] == "state":
+                device_state = data.get("state")
             else:
-                ha_device_id = "sinope_technologies_rm3500zb"
+                device_state = data.get("attributes", {}).get(info["get_attr"], None)
 
-        url_suffix = {
-            "water_heater": f"switch.{ha_device_id}",
-            "space_heating": f"climate.{ha_device_id}",
-            "on_off_ev_charger": f"switch.{ha_device_id}",
-            "electric_storage_soc": "sensor.battery_soc",
-            "electric_storage_power": "sensor.battery_power",
-            "water_heater_temperature": f"sensor.{ha_device_id}_temperature",
-            "temperature_water_heater": f"sensor.{ha_device_id}_temperature",
-            "ev_charger_station": f"number.{ha_device_id}",
-        }
-
-        state_to_get = {
-            "water_heater": "state",
-            "space_heating": "temperature",
-            "on_off_ev_charger": "state",
-            "electric_storage": "state",
-            "ev_charger_station": "state",
-        }
-
-        if field is not None:
-            suffix = url_suffix[field]
-        else:
-            suffix = url_suffix[device["type"]]
-
-        url = f"http://{self._host}:{self._port}/api/states/{suffix}"
-
-        response = get(url, headers=headers)
-        response.raise_for_status()
-
-        logger.info("Device %s state successfully retrieved", device["entity_id"])
-
-        if state_to_get[device["type"]] == "state":
-            device_state = response.json().get(state_to_get[device["type"]])
-        else:
-            device_state = response.json().get("attributes", {}).get(state_to_get[device["type"]], None)
-
-        if isinstance(device_state, str) and device_state.lower() in ["on", "off"]:
-            return 1.0 if device_state.lower() == "on" else 0.0
-        else:
-            return float(device_state)
+            if isinstance(device_state, str):
+                if device_state.lower() == "on":
+                    return 1.0
+                if device_state.lower() == "off":
+                    return 0.0
+                try:
+                    return float(device_state)
+                except (ValueError, TypeError):
+                    return 0.0
+            
+            return float(device_state) if device_state is not None else 0.0
+        except Exception as e:
+            logger.error(f"Error getting state for device {device['entity_id']}: {e}")
+            return 0.0
 
     def set(self, params: dict) -> None:
-        """Sets the state of a Home Assistant device.
-
-        This method sends a POST request to the Home Assistant API to set the state of a device.
-        The device, the desired state, and the action to perform are specified in the `params` dictionary.
-
-        Args:
-            params (dict): A dictionary of parameters specifying the device and the desired state.
-                It must contain a "device" key with a dictionary of device information, including the "entity_id"
-                and "type", and an "action" key with the action to perform.
-        """
+        """Sets the state of a Home Assistant device."""
         logger.info(f"Received set device state request: {params}")
 
-        device: dict = params["device"]
+        device = params["device"]
         action = params["action"]
 
         headers = {
@@ -188,31 +216,22 @@ class HomeAssistantDeviceInterface(DeviceInterface):
             "Content-Type": "application/json",
         }
 
-        url_suffix = {
-            "water_heater": f"services/switch/{'turn_on' if action else 'turn_off'}",
-            "space_heating": "services/climate/set_temperature",
-            "on_off_ev_charger": f"services/switch/{'turn_on' if action else 'turn_off'}",
-            "electric_storage": f"events/{'set_recharge_battery_power' if action >= 0 else 'set_discharge_battery_power'}",
-            "ev_charger_station": "services/number/set_value",
-        }
+        try:
+            info = self._resolve_ha_info(device["entity_id"], device["type"], action=action)
+            
+            if info["domain"] == "sensor":
+                logger.warning(f"Cannot SET state for sensor entity {info['entity']}. Skipping.")
+                return
 
-        url = f"http://{self._host}:{self._port}/api/{url_suffix[device['type']]}"
+            # Specialized URL for events vs services
+            api_type = "events" if info["domain"] == "events" else f"services/{info['domain']}"
+            url = f"http://{self._host}:{self._port}/api/{api_type}/{info['service']}"
 
-        ha_device_id = device['entity_id']
-        if ha_device_id == "water_heater":
-            ha_device_id = "sinope_technologies_rm3500zb"
-
-        body = {
-            "water_heater": {"entity_id": f"switch.{ha_device_id}"},
-            "space_heating": {
-                "entity_id": f"climate.{ha_device_id}",
-                "temperature": action,
-            },
-            "on_off_ev_charger": {"entity_id": f"switch.{ha_device_id}"},
-            "electric_storage": {"power_value": abs(int(action))},
-            "ev_charger_station": {"entity_id": f"number.{ha_device_id}", "value": action},
-        }
-
-        response = post(url, headers=headers, json=body[device["type"]])
-        logger.info("Device %s requested to apply %s as setpoint", device["entity_id"], action)
-        response.raise_for_status()
+            logger.debug(f"Sending POST to {url} with body {info['body']}")
+            response = post(url, headers=headers, json=info["body"])
+            response.raise_for_status()
+            
+            logger.info("Device %s (%s) successfully requested to apply %s via %s", 
+                        device["entity_id"], info["entity"], action, info["service"])
+        except Exception as e:
+            logger.error(f"Error setting state for device {device['entity_id']}: {e}")
