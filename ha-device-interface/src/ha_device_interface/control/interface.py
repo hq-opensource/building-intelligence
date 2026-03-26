@@ -131,8 +131,13 @@ class HomeAssistantDeviceInterface(DeviceInterface):
             info["entity"] = "number.evduty_borne_evduty_evc30_17286_meeb1_max_amp"
             info["domain"] = "number"
             if action is not None:
+                # Convert kW to Amps (Assuming 240V Level 2 charging)
+                # action is in kW, entity expects Amps (0-30 A)
+                amp_value = round((action * 1000) / 240)
+                # Ensure it's within the allowed 0-30A range and follows 1A steps
+                amp_value = max(0, min(30, int(amp_value)))
                 info["service"] = "set_value"
-                info["body"] = {"entity_id": info["entity"], "value": action}
+                info["body"] = {"entity_id": info["entity"], "value": amp_value}
 
         # 3. Space Heating Logic
         elif device_type == "space_heating":
@@ -154,10 +159,12 @@ class HomeAssistantDeviceInterface(DeviceInterface):
             
             if action is not None:
                 # Battery uses custom events via REST API
+                # Convert kW to Watts (Assuming event expects Watts)
+                watt_value = abs(int(action * 1000))
                 event_name = "set_recharge_battery_power" if action >= 0 else "set_discharge_battery_power"
                 info["domain"] = "events" # Specialized for the URL construction
                 info["service"] = event_name
-                info["body"] = {"power_value": abs(int(action))}
+                info["body"] = {"power_value": watt_value}
         
         else:
             logger.warning(f"Device type {device_type} (id={device_id}) not explicitly covered in mapping. Using fallback.")
@@ -210,6 +217,12 @@ class HomeAssistantDeviceInterface(DeviceInterface):
 
         device = params["device"]
         action = params["action"]
+
+        # Deactivate setpoints for thermostats (space_heating) as requested
+        if device.get("type") == "space_heating":
+            logger.info("Thermostat deactivation active: Skipping setpoint application for %s (setpoint: %s)", 
+                        device.get("entity_id"), action)
+            return
 
         headers = {
             "Authorization": f"Bearer {self._token}",
