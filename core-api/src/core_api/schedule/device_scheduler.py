@@ -278,31 +278,6 @@ class DeviceScheduler(AbstractScheduler):
         else:
             logger.warning(f"Unsupported device type: {device_type}")
             return
-        # # Configuration for each device type
-        # if device_type == DeviceHelper.SPACE_HEATING.value:
-        #     config = labels_influx["sh_setpoint"]
-        #     field_name = config["field"] + device_id
-        # elif device_type == DeviceHelper.ON_OFF_EV_CHARGER.value:
-        #     config = labels_influx["ev_charger_net_power"]
-        #     field_name = config["field"] + "_" + device_id
-        # elif device_type == DeviceHelper.ELECTRIC_VEHICLE_V1G.value:
-        #     config = labels_influx["v1g_net_power"]
-        #     field_name = config["field"] + "_" + device_id
-        # elif device_type == DeviceHelper.ELECTRIC_VEHICLE_V2G.value:
-        #     config = labels_influx["v2g_net_power"]
-        #     field_name = config["field"] + "_" + device_id
-        # elif device_type == DeviceHelper.ELECTRIC_STORAGE.value:
-        #     config = labels_influx["eb_net_power"]
-        #     field_name = config["field"] + "_" + device_id
-        # elif device_type == DeviceHelper.WATER_HEATER.value:
-        #     config = labels_influx["wh_power"]
-        #     field_name = config["field"] + "_" + device_id
-        # elif device_type == DeviceHelper.THERMAL_STORAGE.value:
-        #     config = labels_influx["ts_power"]
-        #     field_name = config["field"] + "_" + device_id
-        # else:
-        #     logger.warning(f"Unsupported device type: {device_type}")
-        #     return
 
         # Rename value column according to InfluxDB field
         data.rename(columns={"value": field_name}, inplace=True)

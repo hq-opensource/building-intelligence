@@ -100,7 +100,6 @@ class RealtimeDataManager:
         """
         await broker.connect()
         try:
-            print(payload)
             rpc_response_message = await broker.request(message=payload, channel=topic)
 
             logger.info(f"Sent request to the redis broker: {payload}")

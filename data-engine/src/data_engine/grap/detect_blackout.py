@@ -80,7 +80,6 @@ class DetectBlackout:
                 # Read on redis if the GRAP function was called before or not
                 try:
                     call_state = self._redis_client.safe_read_from_redis(self._labels_redis["grap_cold_pickup_call"])
-                    print("e")
                 except Exception:
                     logger.error("Grap was not called before")
 
