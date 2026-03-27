@@ -25,8 +25,8 @@ logger.info("The Device Controller is starting at %s:", str(datetime.now().astim
 # Create the redis client
 redis_password = os.getenv("REDIS_PASSWORD")
 redis_host = os.getenv("REDIS_HOST")
-redis_port = os.getenv("REDIS_PORT")
-redis_client = RedisClient(redis_host, redis_port, redis_password)
+redis_port = os.getenv("REDIS_PORT", "6379")
+redis_client = RedisClient(redis_host, int(redis_port), redis_password)
 
 # Read the channels configuration from Redis
 labels_channels = redis_client.safe_read_from_redis("labels_channels")

@@ -116,19 +116,55 @@ class DeviceScheduler(AbstractScheduler):
         self._influx_manager.get_buckets_api()
 
         # We look around the target time to find the points
-        # Influx range is exclusive on stop, so we add a tiny bit
         time_windows_start = time_limit - timedelta(seconds=10)
         time_windows_end = time_range_end + timedelta(seconds=1)
 
-        # Build Flux query
-        # We filter for r._time >= timeLimit and r._time <= time_range_end
-        # This allows finding an exact point if timeLimit == time_range_end
+        # Retrieve exact measurement and field mapping
+        if not DeviceHelper.device_exists(self._devices, self._device_id):
+            return None
+        device_type = DeviceHelper.get_all_values_by_filtering_devices(
+            device_list=self._devices, filter_key="entity_id", filter_value=self._device_id, target_key="type"
+        )[0]
+
+        if device_type == DeviceHelper.SPACE_HEATING.value:
+            config = self._labels_influx["sh_setpoint"]
+            field_name = config["field"] + self._device_id
+            measurement = config["measurement"]
+        elif device_type == DeviceHelper.ON_OFF_EV_CHARGER.value:
+            config = self._labels_influx["ev_charger_net_power"]
+            field_name = config["field"]
+            measurement = config["measurement"]
+        elif device_type == DeviceHelper.ELECTRIC_VEHICLE_V1G.value:
+            config = self._labels_influx["v1g_net_power"]
+            field_name = config["field"]
+            measurement = config["measurement"]
+        elif device_type == DeviceHelper.ELECTRIC_VEHICLE_V2G.value:
+            config = self._labels_influx["v2g_net_power"]
+            field_name = config["field"]
+            measurement = config["measurement"]
+        elif device_type == DeviceHelper.ELECTRIC_STORAGE.value:
+            config = self._labels_influx["eb_net_power"]
+            field_name = config["field"]
+            measurement = config["measurement"]
+        elif device_type == DeviceHelper.WATER_HEATER.value:
+            config = self._labels_influx["wh_power"]
+            field_name = config["field"]
+            measurement = config["measurement"]
+        elif device_type == DeviceHelper.THERMAL_STORAGE.value:
+            config = self._labels_influx["ts_power"]
+            field_name = config["field"]
+            measurement = config["measurement"]
+        else:
+            return None
+
+        # Build Flux query accurately targeting measurement and exact field
         query = f'''
         import "strings"
         from(bucket:"{self._bucket}")
           |> range(start: {time_windows_start.isoformat()}, stop: {time_windows_end.isoformat()})
           |> filter(fn: (r) => r["_type"] == "control")
-          |> filter(fn: (r) => strings.hasSuffix(v: r["_field"], suffix: "{self._device_id}"))
+          |> filter(fn: (r) => r["_measurement"] == "{measurement}")
+          |> filter(fn: (r) => r["_field"] == "{field_name}")
           |> map(fn: (r) => ({{ r with priority_int: int(v: r.priority) }}))
           |> filter(fn: (r) => r._time >= {time_limit.isoformat()} and r._time <= {time_range_end.isoformat()})
           |> group(columns: ["_field"])

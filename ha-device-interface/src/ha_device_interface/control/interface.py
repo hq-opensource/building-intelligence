@@ -123,7 +123,7 @@ class HomeAssistantDeviceInterface(DeviceInterface):
                 info["entity"] = "switch.sinope_technologies_rm3500zb"
                 info["domain"] = "switch"
                 if action is not None:
-                    info["service"] = "turn_on" if action > 0 else "turn_off"
+                    info["service"] = "turn_on" if action >= 0.5 else "turn_off"
                     info["body"] = {"entity_id": info["entity"]}
 
         # 2. EV / Charger Logic
@@ -131,9 +131,16 @@ class HomeAssistantDeviceInterface(DeviceInterface):
             info["entity"] = "number.evduty_borne_evduty_evc30_17286_meeb1_max_amp"
             info["domain"] = "number"
             if action is not None:
-                # Convert kW to Amps (Assuming 240V Level 2 charging)
-                # action is in kW, entity expects Amps (0-30 A)
-                amp_value = round((action * 1000) / 240)
+                # Minimum viable charge current for the EVDuty charger is 8 Amps (~1.92 kW).
+                # Values < 1 kW are zeroed. 1 kW <= action < 2 kW are clamped to minimum 8A.
+                # Values >= 2 kW are converted directly.
+                if action < 1.0:
+                    amp_value = 0
+                elif action < 2.0:
+                    amp_value = 8
+                else:
+                    amp_value = round((action * 1000) / 240)
+                    
                 # Ensure it's within the allowed 0-30A range and follows 1A steps
                 amp_value = max(0, min(30, int(amp_value)))
                 info["service"] = "set_value"
@@ -143,7 +150,7 @@ class HomeAssistantDeviceInterface(DeviceInterface):
         elif device_type == "space_heating":
             info["entity"] = f"climate.{device_id}"
             info["domain"] = "climate"
-            info["get_attr"] = "temperature" # setpoint
+            info["get_attr"] = "current_temperature"  # actual measured room temperature
             if action is not None:
                 info["service"] = "set_temperature"
                 info["body"] = {"entity_id": info["entity"], "temperature": action}
