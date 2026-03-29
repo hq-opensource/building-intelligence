@@ -822,7 +822,12 @@
   model: Scheneider XW Pro
   priority: 13
   critical_state: 20.0
-  desired_state: 90.0
+  # IMPORTANT: The Schneider XW502/XW503 inverter enters its internal absorption/CV
+  # charge phase at ~86% SoC and stops responding to external Modbus charge-power
+  # setpoints above that level. Any MPC charge command while SoC >= 86% is physically
+  # ignored by the inverter hardware. To keep all MPC decisions inside the inverter's
+  # controllable range, BOTH desired_state and max_residual_energy are capped at 85%.
+  desired_state: 85.0
   power_capacity: 4.5
   critical_action: 0.0
   activation_action: 4.5
@@ -835,7 +840,8 @@
   charging_efficiency: 0.98
   discharging_efficiency: 0.98
   min_residual_energy: 30
-  max_residual_energy: 95
+  # Hard upper SoC limit for the MPC optimizer. Must not exceed 85% — see note above.
+  max_residual_energy: 85
   decay_factor: 0.995
   preferences_soc:
     weekday:

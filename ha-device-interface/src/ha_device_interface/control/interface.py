@@ -193,7 +193,11 @@ class HomeAssistantDeviceInterface(DeviceInterface):
             info = self._resolve_ha_info(device["entity_id"], device["type"], field=field)
             url = f"http://{self._host}:{self._port}/api/states/{info['entity']}"
 
-            response = get(url, headers=headers)
+            response = get(url, headers=headers, timeout=10)
+            logger.info(
+                "HA GET response | device=%s | url=%s | status=%s | body=%s",
+                device["entity_id"], url, response.status_code, response.text[:500]
+            )
             response.raise_for_status()
 
             data = response.json()
@@ -243,10 +247,14 @@ class HomeAssistantDeviceInterface(DeviceInterface):
             url = f"http://{self._host}:{self._port}/api/{api_type}/{info['service']}"
 
             logger.debug(f"Sending POST to {url} with body {info['body']}")
-            response = post(url, headers=headers, json=info["body"])
+            response = post(url, headers=headers, json=info["body"], timeout=10)
+            logger.info(
+                "HA POST response | device=%s | url=%s | payload=%s | status=%s | body=%s",
+                device["entity_id"], url, info["body"], response.status_code, response.text[:500]
+            )
             response.raise_for_status()
-            
-            logger.info("Device %s (%s) successfully requested to apply %s via %s", 
+
+            logger.info("Device %s (%s) successfully requested to apply %s via %s",
                         device["entity_id"], info["entity"], action, info["service"])
         except Exception as e:
             logger.error(f"Error setting state for device {device['entity_id']}: {e}")

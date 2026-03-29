@@ -86,14 +86,17 @@ class DeviceScheduler(AbstractScheduler):
         if event_data:
             return event_data
 
-        # 2. Step 2: Fallback to the most recent 10-minute interval (staircase interpolation)
-        # Round down to the nearest 10-minute mark (00, 10, 20, 30, 40, 50)
+        # 2. Step 2: Fallback to the most recent 10-minute interval (staircase interpolation).
+        # Round down to the nearest 10-minute mark (00, 10, 20, 30, 40, 50).
+        #
+        # NOTE: Do NOT skip this query when time_10m == time_target.
+        # The MPC schedule saves control signals exactly at 10-min timestamps.
+        # Step 1's 60-second filter uses `time_limit_60s = time_target - 60s` as the
+        # lower bound, so it only catches data written *within the last 60 seconds*.
+        # When the Core API ticks exactly on the 10-min mark (e.g. 12:20:00), the MPC
+        # data at 12:20:00 falls outside Step 1's window and must be found here in Step 2.
         minutes = (time_target.minute // 10) * 10
         time_10m = time_target.replace(minute=minutes, second=0, microsecond=0)
-
-        # Avoid redundant query if time_target was already a 10m mark and we just checked it
-        if time_10m == time_target:
-            return None
 
         logger.debug(f"Step 2: No recent changes. Falling back to 10m interval at {time_10m} for device {self._device_id}")
         return self._query_event_data(time_10m, time_10m, time_10m)
@@ -127,37 +130,55 @@ class DeviceScheduler(AbstractScheduler):
         )[0]
 
         if device_type == DeviceHelper.SPACE_HEATING.value:
+            if self._control_type != "setpoint":
+                return None
             config = self._labels_influx["sh_setpoint"]
             field_name = config["field"] + self._device_id
             measurement = config["measurement"]
         elif device_type == DeviceHelper.ON_OFF_EV_CHARGER.value:
+            if self._control_type != "power":
+                return None
             config = self._labels_influx["ev_charger_net_power"]
             field_name = config["field"]
             measurement = config["measurement"]
         elif device_type == DeviceHelper.ELECTRIC_VEHICLE_V1G.value:
+            if self._control_type != "power":
+                return None
             config = self._labels_influx["v1g_net_power"]
             field_name = config["field"]
             measurement = config["measurement"]
         elif device_type == DeviceHelper.ELECTRIC_VEHICLE_V2G.value:
+            if self._control_type != "power":
+                return None
             config = self._labels_influx["v2g_net_power"]
             field_name = config["field"]
             measurement = config["measurement"]
         elif device_type == DeviceHelper.ELECTRIC_STORAGE.value:
+            if self._control_type != "power":
+                return None
             config = self._labels_influx["eb_net_power"]
             field_name = config["field"]
             measurement = config["measurement"]
         elif device_type == DeviceHelper.WATER_HEATER.value:
+            if self._control_type != "power":
+                return None
             config = self._labels_influx["wh_power"]
             field_name = config["field"]
             measurement = config["measurement"]
         elif device_type == DeviceHelper.THERMAL_STORAGE.value:
+            if self._control_type != "power":
+                return None
             config = self._labels_influx["ts_power"]
             field_name = config["field"]
             measurement = config["measurement"]
         else:
             return None
 
-        # Build Flux query accurately targeting measurement and exact field
+        # Build Flux query accurately targeting measurement and exact field.
+        # IMPORTANT: Use the Flux time() constructor for the inner time filter instead of
+        # bare ISO string literals. Flux compares inline ISO strings *lexicographically*,
+        # which fails when the query timezone offset (e.g. -04:00 local) differs from the
+        # stored UTC offset (+00:00), even if the instants are identical.
         query = f'''
         import "strings"
         from(bucket:"{self._bucket}")
@@ -166,7 +187,7 @@ class DeviceScheduler(AbstractScheduler):
           |> filter(fn: (r) => r["_measurement"] == "{measurement}")
           |> filter(fn: (r) => r["_field"] == "{field_name}")
           |> map(fn: (r) => ({{ r with priority_int: int(v: r.priority) }}))
-          |> filter(fn: (r) => r._time >= {time_limit.isoformat()} and r._time <= {time_range_end.isoformat()})
+          |> filter(fn: (r) => r._time >= time(v: "{time_limit.isoformat()}") and r._time <= time(v: "{time_range_end.isoformat()}"))
           |> group(columns: ["_field"])
           |> top(n: 1, columns: ["priority_int","_time"])
         '''
