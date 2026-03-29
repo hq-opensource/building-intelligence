@@ -315,6 +315,14 @@ class DeviceScheduler(AbstractScheduler):
             logger.warning(f"Unsupported device type: {device_type}")
             return
 
+        # Convert kW to W for specific devices
+        if device_type in [
+            DeviceHelper.ELECTRIC_STORAGE.value,
+            DeviceHelper.WATER_HEATER.value,
+            DeviceHelper.ELECTRIC_VEHICLE_V1G.value,
+        ]:
+            data["value"] = data["value"] * 1000
+
         # Rename value column according to InfluxDB field
         data.rename(columns={"value": field_name}, inplace=True)
 

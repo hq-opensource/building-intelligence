@@ -112,7 +112,6 @@ def update_setpoints(system_just_started: bool = False) -> None:
     control_types_to_monitor = [
         ControlType.CONTROL_SETPOINT,
         ControlType.CONTROL_POWER,
-        ControlType.CONTROL_BATTERY_POWER
     ]
 
     for device in devices:

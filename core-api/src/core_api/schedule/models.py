@@ -320,7 +320,6 @@ class ControlType(StrEnum):
 
     CONTROL_SETPOINT = "setpoint"
     CONTROL_POWER = "power"
-    CONTROL_BATTERY_POWER = "battery_power"
     CONTROL_OCCUPATION = "occupation"
     CONTROL_SOC = "state_of_charge"
     CONTROL_SOLAR_POWER = "sp_power"
@@ -332,6 +331,5 @@ CONTROL_TO_PREFERENCE_TYPE_MAPPING = {
     ControlType.CONTROL_OCCUPATION: PreferenceType.PREFERENCES_OCCUPANCY,
     ControlType.CONTROL_SOC: PreferenceType.PREFERENCES_SOC,
     ControlType.CONTROL_POWER: None,
-    ControlType.CONTROL_BATTERY_POWER: None,
     ControlType.CONTROL_SOLAR_POWER: None,
 }

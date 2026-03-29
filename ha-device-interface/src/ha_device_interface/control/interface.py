@@ -132,14 +132,14 @@ class HomeAssistantDeviceInterface(DeviceInterface):
             info["domain"] = "number"
             if action is not None:
                 # Minimum viable charge current for the EVDuty charger is 8 Amps (~1.92 kW).
-                # Values < 1 kW are zeroed. 1 kW <= action < 2 kW are clamped to minimum 8A.
-                # Values >= 2 kW are converted directly.
-                if action < 1.0:
+                # Values < 1000 W are zeroed. 1000 W <= action < 2000 W are clamped to minimum 8A.
+                # Values >= 2000 W are converted directly.
+                if action < 1000.0:
                     amp_value = 0
-                elif action < 2.0:
+                elif action < 2000.0:
                     amp_value = 8
                 else:
-                    amp_value = round((action * 1000) / 240)
+                    amp_value = round(action / 240)
                     
                 # Ensure it's within the allowed 0-30A range and follows 1A steps
                 amp_value = max(0, min(30, int(amp_value)))
@@ -166,8 +166,8 @@ class HomeAssistantDeviceInterface(DeviceInterface):
             
             if action is not None:
                 # Battery uses custom events via REST API
-                # Convert kW to Watts (Assuming event expects Watts)
-                watt_value = abs(int(action * 1000))
+                # Action is already in Watts
+                watt_value = abs(int(action))
                 event_name = "set_recharge_battery_power" if action >= 0 else "set_discharge_battery_power"
                 info["domain"] = "events" # Specialized for the URL construction
                 info["service"] = event_name
@@ -224,12 +224,6 @@ class HomeAssistantDeviceInterface(DeviceInterface):
 
         device = params["device"]
         action = params["action"]
-
-        # Deactivate setpoints for thermostats (space_heating) as requested
-        if device.get("type") == "space_heating":
-            logger.info("Thermostat deactivation active: Skipping setpoint application for %s (setpoint: %s)", 
-                        device.get("entity_id"), action)
-            return
 
         headers = {
             "Authorization": f"Bearer {self._token}",
