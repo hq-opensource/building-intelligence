@@ -123,7 +123,8 @@ class HomeAssistantDeviceInterface(DeviceInterface):
                 info["entity"] = "switch.sinope_technologies_rm3500zb"
                 info["domain"] = "switch"
                 if action is not None:
-                    info["service"] = "turn_on" if action >= 0.5 else "turn_off"
+                    # Action is now in Watts, threshold is 500W
+                    info["service"] = "turn_on" if action >= 500.0 else "turn_off"
                     info["body"] = {"entity_id": info["entity"]}
 
         # 2. EV / Charger Logic

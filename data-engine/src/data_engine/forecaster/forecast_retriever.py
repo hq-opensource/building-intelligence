@@ -288,7 +288,7 @@ class ForecastRetriever:
 
         # region to compute the non controllable loads
 
-        # Compute total consumption (Consumption = Negative, Production = Positive)
+        # Compute total net power from grid (Consumption = Positive, Generation = Negative)
         total_consumption = total_consumption_df.sum(axis=1)
 
         # Compute controllable consumption
@@ -304,7 +304,7 @@ class ForecastRetriever:
         # the net load, which explains why forecasts can correctly be negative during sunny hours.
         # Since consumption is now positive and generation is negative in our convention:
         # Non_Controllable = Net_Meter - (Sum of Controllable Loads)
-        neg_consumption = total_consumption - (tot_thermostats + tot_battery + tot_water_heater + tot_ev)
+        computed_non_controllable = total_consumption - (tot_thermostats + tot_battery + tot_water_heater + tot_ev)
         # endregion to compute the non controllable loads
 
         # region to save the non controllable loads in Influx
@@ -315,7 +315,7 @@ class ForecastRetriever:
 
         # Build the dataframe to save
         non_controllable_df = pd.DataFrame(index=total_consumption_df.index)
-        non_controllable_df[field_save] = neg_consumption
+        non_controllable_df[field_save] = computed_non_controllable
 
         # save the non controllable loads in InfluxDB
         self._influx_manager.synchronous_write(
