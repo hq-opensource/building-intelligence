@@ -87,7 +87,7 @@ async def get_building_consumption(
             )
 
         return JSONResponse(
-            content={"total_consumption": float(around(retrieved_state.values, 2))},
+            content={"total_consumption": float(around(retrieved_state.values.flat[0], 2))},
             status_code=status.HTTP_200_OK,
         )
 
