@@ -47,7 +47,7 @@ influxdb_org: Optional[str] = os.getenv("INFLUXDB_ORG")
 influxdb_token: Optional[str] = os.getenv("INFLUXDB_TOKEN")
 influx_manager: InfluxManager = InfluxManager(influxdb_url, influxdb_org, influxdb_token)
 
-SCHEDULE_DEFAULT_TIME_STEP_DURATION_IN_SECONDS: int = 60  # seconds
+SCHEDULE_DEFAULT_TIME_STEP_DURATION_IN_SECONDS: int = 30  # seconds
 schedule_time_step_duration_in_seconds: int = int(
     os.getenv("SCHEDULE_TIME_STEP_DURATION_IN_SECONDS", str(SCHEDULE_DEFAULT_TIME_STEP_DURATION_IN_SECONDS))
 )
@@ -148,7 +148,7 @@ def main() -> None:
     update_setpoints(system_just_started=True)
 
     # Set the schedule to trigger every XX seconds
-    trigger: CronTrigger = CronTrigger(year="*", month="*", day="*", hour="*", minute="*", second="0")
+    trigger: CronTrigger = CronTrigger(year="*", month="*", day="*", hour="*", minute="*", second="0,30")
     scheduler.add_job(
         update_setpoints,
         trigger=trigger,
